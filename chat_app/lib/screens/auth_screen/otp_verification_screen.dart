@@ -5,77 +5,74 @@ class OTPVerificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Image.asset(backArrow),
+    var controller = Get.find<AuthController>();
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-      ),
-      resizeToAvoidBottomInset: false,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              'Enter the OTP sent to your email',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24,
-                fontFamily: carosBold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            OtpTextField(
-              numberOfFields: 6,
-              borderColor: secondaryFontColor,
-              //set to true to show as box or false to show as dash
-              showFieldAsBox: true,
-              //runs when a code is typed in
-              onCodeChanged: (String code) {
-                //handle validation or checks here
-              },
-              //runs when every textfield is filled
-              onSubmit: (String verificationCode) {
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text("Verification Code"),
-                        content: Text('Code entered is $verificationCode'),
-                      );
-                    });
-              }, // end onSubmit
-            ),
-            const SizedBox(height: 20),
-            InkWell(
-              onTap: () {
-                // Resend OTP
-              },
-              child: const Text(
-                'Resend OTP',
+        resizeToAvoidBottomInset: false,
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const Text(
+                'Enter the OTP sent to your email',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: secondaryFontColor,
-                  fontSize: 16,
-                  fontFamily: circularStdBold,
+                  fontSize: 24,
+                  fontFamily: carosBold,
                 ),
               ),
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-            LargeButton(
-              title: 'Verify OTP',
-              onPressed: () {
-                Get.to(() => const ChangePasswordScreen(),
-                    transition: Transition.rightToLeft);
-              },
-              backgroundColor: secondaryFontColor,
-              textColor: whiteColor,
-            )
-          ],
+              const SizedBox(height: 20),
+              OtpTextField(
+                numberOfFields: 6,
+                clearText: true,
+                enabledBorderColor: primartColor,
+                focusedBorderColor: primartColor,
+                borderColor: secondaryFontColor,
+                //set to true to show as box or false to show as dash
+                showFieldAsBox: true,
+                //runs when a code is typed in
+                onCodeChanged: (String code) {
+                  //handle validation or checks here
+                  controller.otpController.text = code;
+                },
+                //runs when every textfield is filled
+                onSubmit: (String verificationCode) {
+                  //handle validation or checks here
+                  controller.otpController.text = verificationCode;
+                  controller.verifyOTP();
+                }, // end onSubmit
+              ),
+              const SizedBox(height: 20),
+              InkWell(
+                onTap: () {
+                  // Resend OTP
+                  controller.sendPasswordResetEmail();
+                },
+                child: const Text(
+                  'Resend OTP',
+                  style: TextStyle(
+                    color: secondaryFontColor,
+                    fontSize: 16,
+                    fontFamily: circularStdBold,
+                  ),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+              LargeButton(
+                controller: controller,
+                title: 'Verify OTP',
+                onPressed: () {
+                  controller.verifyOTP();
+                },
+                backgroundColor: secondaryFontColor,
+                textColor: whiteColor,
+              )
+            ],
+          ),
         ),
       ),
     );

@@ -23,6 +23,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0.0,
+        ),
         primarySwatch: Colors.blue,
       ),
       home: const SplashScreen(),

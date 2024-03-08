@@ -1,29 +1,23 @@
+import 'dart:developer';
+
 import 'package:chat_app/utils/exports.dart';
-import 'package:chat_app/widgets/input_field.dart';
-import 'package:chat_app/widgets/password_input_field.dart';
 
 class SignUpScreen extends StatelessWidget {
-  const SignUpScreen({super.key});
+  SignUpScreen({super.key});
 
+  final formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     var controller = Get.put(AuthController());
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Image.asset(backArrow),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-      ),
-      // resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.85,
+        // resizeToAvoidBottomInset: false,
+        body: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -56,7 +50,7 @@ class SignUpScreen extends StatelessWidget {
                           height: MediaQuery.of(context).size.height * 0.05,
                         ),
                         Form(
-                          key: controller.formKey,
+                          key: formKey,
                           child: Column(
                             children: [
                               InputField(
@@ -76,9 +70,6 @@ class SignUpScreen extends StatelessWidget {
                                 },
                                 controller: controller.usernameController,
                               ),
-                              const SizedBox(
-                                height: 20,
-                              ),
                               InputField(
                                 label: email,
                                 hintText: emailHint,
@@ -94,9 +85,6 @@ class SignUpScreen extends StatelessWidget {
                                   return null;
                                 },
                                 controller: controller.emailController,
-                              ),
-                              const SizedBox(
-                                height: 20,
                               ),
                               PasswordInputField(
                                 label: password,
@@ -114,9 +102,6 @@ class SignUpScreen extends StatelessWidget {
                                 },
                                 controller: controller.passwordController,
                               ),
-                              const SizedBox(
-                                height: 20,
-                              ),
                               PasswordInputField(
                                 label: confirmPassword,
                                 hintText: confirmPasswordHint,
@@ -124,8 +109,9 @@ class SignUpScreen extends StatelessWidget {
                                   if (value!.isEmpty) {
                                     return 'Password is required';
                                   }
-                                  if (controller.password.value !=
-                                      controller.confirmPassword.value) {
+                                  if (controller.passwordController.value !=
+                                      controller
+                                          .confirmPasswordController.value) {
                                     return 'Password does not match';
                                   }
                                   return null;
@@ -141,26 +127,54 @@ class SignUpScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
                     LargeButton(
+                      controller: controller,
                       title: createAccount,
                       onPressed: () {
-                        if (controller.formKey.currentState!.validate()) {
-                          controller.emailController.clear();
-                          controller.passwordController.clear();
-                          controller.confirmPasswordController.clear();
-                          controller.usernameController.clear();
+                        if (formKey.currentState!.validate()) {
+                          log('Signup');
+                          controller.signup();
                         }
                       },
-                      backgroundColor: controller.email.value.isEmpty ||
-                              controller.password.value.isEmpty ||
-                              controller.confirmPassword.value.isEmpty
-                          ? greyColor
-                          : secondaryFontColor,
+                      backgroundColor: secondaryFontColor,
                       textColor: whiteColor,
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Get.to(() => LoginScreen(),
+                            transition: Transition.rightToLeft);
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Existing account? ',
+                            style: TextStyle(
+                              color: secondaryFontColor,
+                              fontSize: 14,
+                              fontFamily: circularStdBook,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            'Login',
+                            style: TextStyle(
+                              color: secondaryFontColor,
+                              fontSize: 14,
+                              fontFamily: circularStdBook,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
