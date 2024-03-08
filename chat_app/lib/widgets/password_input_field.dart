@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_typing_uninitialized_variables
+
 import 'package:chat_app/utils/exports.dart';
 
 class PasswordInputField extends StatefulWidget {
@@ -49,52 +51,63 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
         const SizedBox(
           height: 5,
         ),
-        TextFormField(
-          obscureText: obsecure,
-          keyboardType: TextInputType.visiblePassword,
-          textCapitalization: TextCapitalization.none,
-          controller: widget.controller,
-          validator: widget.validator,
-          decoration: InputDecoration(
-            suffixIcon: obsecure
-                ? IconButton(
-                    onPressed: () {
-                      obsecure = !obsecure;
-                      setState(() {});
-                    },
-                    icon: Image.asset(icPassHide, width: 20),
-                    color: blackColor,
-                  )
-                : IconButton(
-                    onPressed: () {
-                      obsecure = !obsecure;
-                      setState(() {});
-                    },
-                    icon: Image.asset(icPassShow, width: 20),
-                    color: blackColor,
-                  ),
-            hintText: widget.hintText,
-            hintStyle: const TextStyle(
-              color: greyColor,
-              fontSize: 14,
-              fontFamily: circularStdBook,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: secondaryFontColor,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
+        SizedBox(
+          height: 72,
+          child: TextFormField(
+            obscureText: obsecure,
+            keyboardType: TextInputType.visiblePassword,
+            textCapitalization: TextCapitalization.none,
+            controller: widget.controller,
+            validator: widget.validator,
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              isDense: true,
+              suffixIcon: obsecure
+                  ? IconButton(
+                      onPressed: () {
+                        obsecure = !obsecure;
+                        setState(() {});
+                      },
+                      icon: Image.asset(icPassHide, width: 20),
+                      color: blackColor,
+                    )
+                  : IconButton(
+                      onPressed: () {
+                        obsecure = !obsecure;
+                        setState(() {});
+                      },
+                      icon: Image.asset(icPassShow, width: 20),
+                      color: blackColor,
+                    ),
+              hintText: widget.hintText,
+              hintStyle: const TextStyle(
                 color: greyColor,
+                fontSize: 14,
+                fontFamily: circularStdBook,
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: secondaryFontColor,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: greyColor,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: redColor,
+                ),
+              ),
+              errorStyle: const TextStyle(
                 color: redColor,
+                fontSize: 12,
+                fontFamily: circularStdBook,
               ),
             ),
           ),
