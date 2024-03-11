@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_app/utils/exports.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
 class AuthController extends GetxController {
@@ -19,7 +20,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'http://192.168.100.49:8000/user';
+  final baseURL = 'http://192.168.0.115:8000/user';
 
   signup() async {
     try {
@@ -95,22 +96,14 @@ class AuthController extends GetxController {
       };
       var url = Uri.parse('$baseURL/login/');
       var response = await http.post(url, body: data);
-      // log('Response: ${response.body}');
       var responseJson = json.decode(response.body);
       log('Response JSON: $responseJson');
-      // log('Response Status Code: ${response.statusCode}');
-      // log('Token: ${responseJson['token']}');
-      // log('User ID: ${responseJson['user_id'].toString()}');
       if (response.statusCode == 200) {
         Get.snackbar('Success', responseJson['status']);
         isLoading(false);
 
         prefs.setString('token', responseJson['token']);
         prefs.setString('user_id', responseJson['user_id'].toString());
-        // token(responseJson['token'].toString());
-        // userid(responseJson['user_id'].toString());
-        // log('Token: ${token.value.toString()}');
-        // log('User ID: ${userid.value.toString()}');
         emailController.clear();
         passwordController.clear();
         Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
@@ -190,12 +183,6 @@ class AuthController extends GetxController {
         log('Response JSON: $responseJson');
         Get.snackbar('Success', responseJson['message']);
         otpController.clear();
-        // Navigator.pushReplacement(
-        //   Get.context!,
-        //   MaterialPageRoute(
-        //     builder: (context) => const ResetPasswordScreen(),
-        //   ),
-        // );
         Get.to(() => const ChangePasswordScreen(),
             transition: Transition.rightToLeft);
       } else {
@@ -233,12 +220,6 @@ class AuthController extends GetxController {
         emailController.clear();
         passwordController.clear();
         confirmPasswordController.clear();
-        // Navigator.pushReplacement(
-        //   Get.context!,
-        //   MaterialPageRoute(
-        //     builder: (context) => const SignInScreen(),
-        //   ),
-        // );
       } else {
         Get.snackbar('Error', 'Something went wrong');
       }
@@ -265,4 +246,63 @@ class AuthController extends GetxController {
       Get.snackbar('Error', e.toString());
     }
   }
+
+  authWithGoogleDjango() async {
+    try {
+      isLoading(true);
+      final prefs = await SharedPreferences.getInstance();
+      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      final googleSignInAccount = await googleSignIn.signIn();
+      final googleSignInAuthentication =
+          await googleSignInAccount?.authentication;
+      final accessToken = googleSignInAuthentication?.accessToken;
+      final idToken = googleSignInAuthentication?.idToken;
+      log('Access Token: $accessToken');
+      log('ID Token: $idToken');
+      final url = Uri.parse('$baseURL/google/');
+      final response = await http.post(url, body: {
+        'access_token': accessToken,
+        // 'id_token': idToken,
+      });
+      final responseJson = json.decode(response.body);
+      log('Response JSON: $responseJson');
+      if (response.statusCode == 200) {
+        prefs.setString('token', responseJson['token']);
+        prefs.setString('user_id', responseJson['user_id'].toString());
+        Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
+      } else {
+        Get.snackbar('Error', responseJson['error']);
+      }
+    } catch (e) {
+      log('Error: $e');
+    }
+    isLoading(false);
+  }
+
+  // authWithFacebookDjango() async {
+  //   try {
+  //     isLoading(true);
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final facebookLogin = FacebookLogin();
+  //     final result = await facebookLogin.logIn(['email']);
+  //     final accessToken = result.accessToken.token;
+  //     log('Access Token: $accessToken');
+  //     final url = Uri.parse('$baseURL/facebook/');
+  //     final response = await http.post(url, body: {
+  //       'access_token': accessToken,
+  //     });
+  //     final responseJson = json.decode(response.body);
+  //     log('Response JSON: $responseJson');
+  //     if (response.statusCode == 200) {
+  //       prefs.setString('token', responseJson['token']);
+  //       prefs.setString('user_id', responseJson['user_id'].toString());
+  //       Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
+  //     } else {
+  //       Get.snackbar('Error', responseJson['error']);
+  //     }
+  //   } catch (e) {
+  //     log('Error: $e');
+  //   }
+  //   isLoading(false);
+  // }
 }

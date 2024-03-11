@@ -1,5 +1,3 @@
-import 'package:chat_app/screens/chat_screen/chat_screen.dart';
-import 'package:chat_app/screens/settings_screen/profile_settings_screen/profile_settings_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
 

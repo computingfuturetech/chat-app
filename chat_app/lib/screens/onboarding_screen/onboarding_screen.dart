@@ -6,6 +6,7 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var controller = Get.put(AuthController());
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -98,7 +99,9 @@ class OnboardingScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10000),
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      controller.authWithGoogleDjango();
+                    },
                     icon: Image.asset(google),
                   ),
                 ),
@@ -155,7 +158,7 @@ class OnboardingScreen extends StatelessWidget {
             SimpleLargeButton(
               title: signupWithEmail,
               onPressed: () {
-                Get.offAll(() =>  SignUpScreen(),
+                Get.offAll(() => SignUpScreen(),
                     transition: Transition.rightToLeft);
               },
             ),
