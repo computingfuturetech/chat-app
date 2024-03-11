@@ -16,6 +16,7 @@ class SplashScreen extends StatelessWidget {
               transition: Transition.zoom);
         }
       });
+      // Get.offAll(() => const Home(), transition: Transition.zoom);
     });
 
     return Scaffold(

@@ -1,5 +1,4 @@
 import 'package:chat_app/utils/exports.dart';
-import 'package:flutter/material.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
