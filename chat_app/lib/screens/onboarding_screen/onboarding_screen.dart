@@ -81,7 +81,9 @@ class OnboardingScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10000),
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      controller.authWithFacebookDjango();
+                    },
                     icon: Image.asset(facebook),
                   ),
                 ),

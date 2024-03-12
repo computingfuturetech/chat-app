@@ -3,9 +3,9 @@
 const String logo = 'assets/images/logo.png';
 const String splash = 'assets/images/splash_logo.png';
 const String onbg = 'assets/images/onboardingBackground.png';
-const String p1 = 'assets/images/p1.jpg';
-const String p2 = 'assets/images/p2.jpg';
-const String p3 = 'assets/images/p3.jpg';
+const String p1 = 'assets/images/p1.png';
+const String p2 = 'assets/images/p2.png';
+const String p3 = 'assets/images/p3.png';
 
 //       ICON PATHS
 
@@ -37,3 +37,5 @@ const String useradd = 'assets/icons/user-add.png';
 const String users = 'assets/icons/Users.png';
 const String icPassHide = 'assets/icons/hide.png';
 const String icPassShow = 'assets/icons/show.png';
+const String callIcon = 'assets/icons/Call.png';
+const String videoCallIcon = 'assets/icons/Video.png';
