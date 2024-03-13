@@ -12,3 +12,5 @@ const primartColor = Color(0xFF20A090);
 const secondaryColor = Color(0xFF1E1E1E);
 const greyColor = Color(0xFF797C7B);
 const gradientColor = Color(0xFF43116A);
+const grey2Color = Color(0xFFE6E6E6);
+const chatCardColor = Color(0xFFF2F7FB);

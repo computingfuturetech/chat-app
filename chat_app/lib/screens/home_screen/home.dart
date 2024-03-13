@@ -13,17 +13,17 @@ class Home extends StatelessWidget {
       const BottomNavigationBarItem(
           icon: Icon(CupertinoIcons.chat_bubble_text), label: 'Messages'),
       const BottomNavigationBarItem(
-          icon: Icon(Icons.call_outlined), label: 'Calls'),
+          icon: Icon(Icons.person_add_alt_outlined), label: 'Requests'),
       const BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.profile_circled), label: 'Contacts'),
+          icon: Icon(Icons.contact_page_outlined), label: 'Contacts'),
       const BottomNavigationBarItem(
           icon: Icon(Icons.settings_outlined), label: 'Settings'),
     ];
 
     var navBody = [
       const HomeScreen(),
-      const ChatScreen(),
-      const ProfileSettingScreen(),
+      const RequestScreen(),
+      const ContactScreen(),
       const SettingScreen(),
     ];
 
@@ -40,6 +40,8 @@ class Home extends StatelessWidget {
             fontFamily: carosMedium,
             fontSize: 12,
           ),
+          useLegacyColorScheme: false,
+          enableFeedback: false,
           currentIndex: controller.currentNavIndex.value,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: secondaryFontColor,

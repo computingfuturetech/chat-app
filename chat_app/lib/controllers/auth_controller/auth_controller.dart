@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_app/utils/exports.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
@@ -20,7 +21,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'http://192.168.0.115:8000/user';
+  final baseURL = 'http://192.168.0.189:8000/user';
 
   signup() async {
     try {
@@ -305,4 +306,30 @@ class AuthController extends GetxController {
   //   }
   //   isLoading(false);
   // }
+
+  authWithFacebookDjango() async {
+    try {
+      isLoading(true);
+      final prefs = await SharedPreferences.getInstance();
+      final LoginResult result = await FacebookAuth.instance.login();
+      final AccessToken? accessToken = result.accessToken;
+      log('Access Token: $accessToken');
+      // final url = Uri.parse('$baseURL/facebook/');
+      // final response = await http.post(url, body: {
+      //   'access_token': accessToken?.token,
+      // });
+      // final responseJson = json.decode(response.body);
+      // log('Response JSON: $responseJson');
+      // if (response.statusCode == 200) {
+      //   prefs.setString('token', responseJson['token']);
+      //   prefs.setString('user_id', responseJson['user_id'].toString());
+      //   Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
+      // } else {
+      //   Get.snackbar('Error', responseJson['error']);
+      // }
+    } catch (e) {
+      log('Error: $e');
+    }
+    isLoading(false);
+  }
 }
