@@ -10,8 +10,16 @@ class EmailBackend(ModelBackend):
         except User.DoesNotExist:
             return None
 
-        if user.check_password(password) and self.user_can_authenticate(user):
-            return user
+        if user.is_social_login:
+            if self.user_can_authenticate(user):
+                return user
+            else:
+                return None
+        else:
+            if user.check_password(password) and self.user_can_authenticate(user):
+                return user
+            else:
+                return None
 
     def get_user(self, user_id):
         try:
