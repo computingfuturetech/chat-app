@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from djoser.serializers import UserSerializer as BaseUserSerializer,UserCreateSerializer as BaseUserCreateSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import User
+from .models import User,FriendRequest
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
+
 
 class UserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
@@ -35,8 +36,6 @@ class ForgetPasswordSerializer(serializers.Serializer):
         try:
             validate_password(value)
         except ValidationError as e:
-            # If the password doesn't meet the complexity requirements,
-            # raise a ValidationError with the error messages from Django's validate_password
             raise serializers.ValidationError(e.messages)
         return value
 
@@ -50,3 +49,32 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         fields=['first_name','last_name','phone','image']
+
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['to_user']
+
+class ReceivedFriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['from_user','created_at']
+ 
+
+
+class AcceptFriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['from_user','is_accepted']
+
+
+class UserInformationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name','last_name','bio','image']
+    
+class UserOnlineStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['is_online']

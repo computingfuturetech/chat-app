@@ -9,4 +9,11 @@ urlpatterns=[
     path('forget-password/', views.ForgetPassword.as_view(), name='forget-password'),
     path('verify-otp/', views.VerifyOTP.as_view(), name='verify-otp'),
     path('update/', views.update_user, name='update_user'),
+    path('',views.home, name='login'),
+    path('google/',views.get_google_user_info, name='google'),
+    path('friend_request/send/', views.SendFriendRequestView.as_view(), name='send_friend_request'),
+    path('friend-request/receive/', views.ReceiveFriendRequestView.as_view(), name='receive_friend_request'),
+    path('friend-request/accept/<int:pk>/', views.AcceptFriendRequestView.as_view(), name='accept_friend_request'),
+    path('list_of_user/', views.ListOfUserView.as_view(), name='list_of_user'),
+    path('is_online/', views.IsOnlineView.as_view(), name='is_online'),
 ]
