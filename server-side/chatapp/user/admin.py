@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User
+from .models import User,FriendRequest
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -16,3 +16,6 @@ class UserAdmin(BaseUserAdmin):
     list_editable = ['image']
     
 
+@admin.register(FriendRequest)
+class FriendRequestAdmin(admin.ModelAdmin):
+    list_display = ['from_user', 'to_user', 'is_accepted', 'created_at']
