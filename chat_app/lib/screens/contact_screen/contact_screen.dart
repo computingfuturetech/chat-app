@@ -7,12 +7,13 @@ class ContactScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: secondaryColor,
+      backgroundColor: primaryFontColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
-        child: CustomAppBar(
+        child: customAppBar(
           title: 'Request',
-          imageUrl: useradd,
+          imageUrl: CupertinoIcons.person_add,
+          isIcon: true,
         ),
       ),
       body: Container(
