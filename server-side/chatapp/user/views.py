@@ -310,21 +310,24 @@ class ReceiveFriendRequestView(generics.ListAPIView):
 class AcceptFriendRequestView(generics.UpdateAPIView):
     serializer_class = AcceptFriendRequestSerializer
     permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        return FriendRequest.objects.filter(to_user=self.request.user, is_accepted=False)
+
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        from_user_id = serializer.validated_data['from_user'] 
-        friend_request = self.get_object()
-        friend_request.is_accepted = True
-        friend_request.save()
+        from_user_id = serializer.validated_data.get('from_user')
+        friend_request=FriendRequest.objects.get(to_user=self.request.user,from_user=from_user_id.id)
+        if friend_request.is_accepted == True:
+            return Response({'message': 'Friend request already accepted'}, status=status.HTTP_200_OK)
+        if friend_request.is_accepted == False:
+            friend_request.is_accepted = True
+            friend_request.save()
         from_user_id = friend_request.from_user.id
         to_user_id = friend_request.to_user.id
         chat_room_id = f"{from_user_id}{to_user_id}"
-        chat_room = ChatRoom.objects.create(chat_type='one_to_one', chat_room_id=chat_room_id)
+        chat_room = ChatRoom.objects.create(chat_type='one_to_one', chat_room_id=chat_room_id,member_count=2)
         chat_room.members.add(friend_request.from_user, friend_request.to_user)
         return Response({'message': 'Friend request accepted and chat room created successfully'}, status=status.HTTP_200_OK)
+
     
 
 class ListOfUserView(generics.ListAPIView):
@@ -356,7 +359,7 @@ class IsOnlineView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response({'message': 'Is_online status updated successfully'}, status=200)
+        return Response(serializer.data, status=200)
 
     def get(self, request, *args, **kwargs):
         return Response({'error': 'Method not allowed'}, status=405)         

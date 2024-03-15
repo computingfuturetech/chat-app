@@ -5,18 +5,27 @@ from asgiref.sync import async_to_sync
 from .models import ChatRoom
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics,status
+from .serializers import ChatRoomSerializer
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
-@csrf_exempt
-@login_required
-def create_chat_room(request):
-    if request.method == 'POST':
-        chat_type = request.POST.get('chat_type')
-        member_ids = request.POST.getlist('member_ids[]') 
-        chat_room = ChatRoom.objects.create(chat_type=chat_type)
-        chat_room.members.add(*member_ids)
-        return JsonResponse({'id': chat_room.id, 'chat_type': chat_room.chat_type, 'member_count': chat_room.member_count})
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+class UserChatRoomsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user_id = request.user.id
+        User = get_user_model()
+        # user = get_object_or_404(User, pk=user_id)
+        chat_rooms = ChatRoom.objects.filter(members=user_id)
+        serializer = ChatRoomSerializer(chat_rooms, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @login_required
 def send_message(request):

@@ -13,7 +13,7 @@ urlpatterns=[
     path('google/',views.get_google_user_info, name='google'),
     path('friend_request/send/', views.SendFriendRequestView.as_view(), name='send_friend_request'),
     path('friend-request/receive/', views.ReceiveFriendRequestView.as_view(), name='receive_friend_request'),
-    path('friend-request/accept/<int:pk>/', views.AcceptFriendRequestView.as_view(), name='accept_friend_request'),
+    path('friend-request/accept/', views.AcceptFriendRequestView.as_view(), name='accept_friend_request'),
     path('list_of_user/', views.ListOfUserView.as_view(), name='list_of_user'),
     path('is_online/', views.IsOnlineView.as_view(), name='is_online'),
 ]
