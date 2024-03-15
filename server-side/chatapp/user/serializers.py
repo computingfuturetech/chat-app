@@ -72,7 +72,7 @@ class AcceptFriendRequestSerializer(serializers.ModelSerializer):
 class UserInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['first_name','last_name','bio','image']
+        fields = ['id','first_name','last_name','bio','image']
     
 class UserOnlineStatusSerializer(serializers.ModelSerializer):
     class Meta:
