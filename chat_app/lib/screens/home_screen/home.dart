@@ -35,27 +35,33 @@ class Home extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: Obx(
-        () => BottomNavigationBar(
-          unselectedLabelStyle: const TextStyle(
-            fontFamily: carosMedium,
-            fontSize: 12,
+        () => Theme(
+          data: ThemeData(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
           ),
-          useLegacyColorScheme: false,
-          enableFeedback: false,
-          currentIndex: controller.currentNavIndex.value,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: secondaryFontColor,
-          // selectedIconTheme: const IconThemeData(color: secondaryFontColor),
-          unselectedItemColor: Colors.grey[500],
-          selectedLabelStyle: const TextStyle(
-            fontFamily: carosMedium,
-            fontSize: 12,
+          child: BottomNavigationBar(
+            unselectedLabelStyle: const TextStyle(
+              fontFamily: carosMedium,
+              fontSize: 12,
+            ),
+            useLegacyColorScheme: false,
+            enableFeedback: false,
+            currentIndex: controller.currentNavIndex.value,
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: secondaryFontColor,
+            // selectedIconTheme: const IconThemeData(color: secondaryFontColor),
+            unselectedItemColor: Colors.grey[500],
+            selectedLabelStyle: const TextStyle(
+              fontFamily: carosMedium,
+              fontSize: 12,
+            ),
+            backgroundColor: whiteColor,
+            items: navbarItem,
+            onTap: (value) {
+              controller.currentNavIndex.value = value;
+            },
           ),
-          backgroundColor: whiteColor,
-          items: navbarItem,
-          onTap: (value) {
-            controller.currentNavIndex.value = value;
-          },
         ),
       ),
     );

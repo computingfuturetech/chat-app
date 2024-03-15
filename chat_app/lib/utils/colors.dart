@@ -14,3 +14,5 @@ const greyColor = Color(0xFF797C7B);
 const gradientColor = Color(0xFF43116A);
 const grey2Color = Color(0xFFE6E6E6);
 const chatCardColor = Color(0xFFF2F7FB);
+const lightBlackColor = Color(0xFF051D13);
+const settingsCardColor = Color(0xFFF2F8F7);
