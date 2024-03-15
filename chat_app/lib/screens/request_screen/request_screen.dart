@@ -1,11 +1,17 @@
+import 'dart:developer';
+
+import 'package:chat_app/controllers/user_controller/user_controller.dart';
+import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class RequestScreen extends StatelessWidget {
   const RequestScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    var userController = Get.put(UserController());
     return Scaffold(
       backgroundColor: primaryFontColor,
       appBar: PreferredSize(
@@ -50,117 +56,165 @@ class RequestScreen extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: 10,
-                        itemBuilder: (context, index) {
-                          return Column(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(
-                                    top: 4, left: 8, right: 8, bottom: 4),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      height: 50,
-                                      width: 50,
-                                      decoration: BoxDecoration(
-                                        color: whiteColor,
-                                        borderRadius:
-                                            BorderRadius.circular(1000),
-                                      ),
-                                      child: Center(
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(1000),
-                                          child: CachedNetworkImage(
-                                              placeholder: (context, url) =>
-                                                  const Center(
-                                                    child:
-                                                        CupertinoActivityIndicator(),
+                      child: StreamBuilder<List<FriendRequest>>(
+                        stream: userController.fetchRequestData(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: SpinKitCircle(
+                                color: primartColor,
+                                size: 50,
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text('Error: ${snapshot.error}'),
+                            );
+                          } else {
+                            final List<FriendRequest> users = snapshot.data!;
+
+                            return users.isEmpty
+                                ? const Center(
+                                    child: Text('No requests found'),
+                                  )
+                                : ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    itemCount: users.length,
+                                    itemBuilder: (context, index) {
+                                      final friendRequest = users[index];
+
+                                      return Column(
+                                        children: [
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                                top: 4,
+                                                left: 8,
+                                                right: 8,
+                                                bottom: 4),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  height: 50,
+                                                  width: 50,
+                                                  decoration: BoxDecoration(
+                                                    color: whiteColor,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            1000),
                                                   ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      const Icon(Icons.error),
-                                              height: 50,
-                                              width: 50,
-                                              fit: BoxFit.cover,
-                                              imageUrl:
-                                                  'https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg'),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                    const Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'John Doe',
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            fontFamily: carosMedium,
-                                            fontSize: 16,
+                                                  child: Center(
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              1000),
+                                                      child: CachedNetworkImage(
+                                                          placeholder:
+                                                              (context, url) =>
+                                                                  const Center(
+                                                                    child:
+                                                                        CupertinoActivityIndicator(),
+                                                                  ),
+                                                          errorWidget: (context,
+                                                                  url, error) =>
+                                                              const Icon(
+                                                                  Icons.error),
+                                                          height: 50,
+                                                          width: 50,
+                                                          fit: BoxFit.cover,
+                                                          imageUrl: friendRequest
+                                                                  .imageUrl ??
+                                                              ''),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '${friendRequest.firstName ?? ''} ${friendRequest.lastName ?? ''}',
+                                                      maxLines: 1,
+                                                      style: const TextStyle(
+                                                        fontFamily: carosMedium,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      friendRequest.bio ?? '',
+                                                      maxLines: 1,
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            circularStdBook,
+                                                        fontSize: 12,
+                                                        color: greyColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const Spacer(),
+                                                IconButton.outlined(
+                                                  iconSize: 20,
+                                                  style: ButtonStyle(
+                                                    maximumSize:
+                                                        MaterialStateProperty
+                                                            .all(
+                                                      const Size(40, 40),
+                                                    ),
+                                                    side: MaterialStateProperty
+                                                        .all(
+                                                      const BorderSide(
+                                                        color: greenColor,
+                                                        width: 1.0,
+                                                        style:
+                                                            BorderStyle.solid,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  onPressed: () {
+                                                    userController
+                                                        .acceptFriendRequest(
+                                                            friendRequest
+                                                                .fromUserId);
+                                                  },
+                                                  icon: const Icon(
+                                                      CupertinoIcons.checkmark),
+                                                  color: greenColor,
+                                                ),
+                                                IconButton.outlined(
+                                                  iconSize: 20,
+                                                  style: ButtonStyle(
+                                                    side: MaterialStateProperty
+                                                        .all(
+                                                      const BorderSide(
+                                                        color: redColor,
+                                                        width: 1.0,
+                                                        style:
+                                                            BorderStyle.solid,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  onPressed: () {},
+                                                  icon: const Icon(
+                                                      CupertinoIcons.xmark),
+                                                  color: redColor,
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          'Hey, how are you?',
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            fontFamily: circularStdBook,
-                                            fontSize: 12,
-                                            color: greyColor,
+                                          const Divider(
+                                            height: 20,
+                                            thickness: 0.5,
+                                            color: grey2Color,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    IconButton.outlined(
-                                      iconSize: 20,
-                                      style: ButtonStyle(
-                                        maximumSize: MaterialStateProperty.all(
-                                          const Size(40, 40),
-                                        ),
-                                        side: MaterialStateProperty.all(
-                                          const BorderSide(
-                                            color: greenColor,
-                                            width: 1.0,
-                                            style: BorderStyle.solid,
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: () {},
-                                      icon:
-                                          const Icon(CupertinoIcons.checkmark),
-                                      color: greenColor,
-                                    ),
-                                    IconButton.outlined(
-                                      iconSize: 20,
-                                      style: ButtonStyle(
-                                        side: MaterialStateProperty.all(
-                                          const BorderSide(
-                                            color: redColor,
-                                            width: 1.0,
-                                            style: BorderStyle.solid,
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: () {},
-                                      icon: const Icon(CupertinoIcons.xmark),
-                                      color: redColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Divider(
-                                height: 20,
-                                thickness: 0.5,
-                                color: grey2Color,
-                              ),
-                            ],
-                          );
+                                        ],
+                                      );
+                                    },
+                                  );
+                          }
                         },
                       ),
                     ),
