@@ -20,7 +20,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'http://192.168.0.189:8000/user';
+  final baseURL = 'http://192.168.0.115:8000/user';
 
   signup() async {
     try {

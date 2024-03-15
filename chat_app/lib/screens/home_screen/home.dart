@@ -1,5 +1,6 @@
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -27,40 +28,68 @@ class Home extends StatelessWidget {
       const SettingScreen(),
     ];
 
-    return Scaffold(
-      body: Column(
-        children: [
-          Obx(() => Expanded(
-              child: navBody.elementAt(controller.currentNavIndex.value))),
-        ],
-      ),
-      bottomNavigationBar: Obx(
-        () => Theme(
-          data: ThemeData(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-          child: BottomNavigationBar(
-            unselectedLabelStyle: const TextStyle(
-              fontFamily: carosMedium,
-              fontSize: 12,
+    return PopScope(
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          if (controller.currentNavIndex.value != 0) {
+            controller.currentNavIndex.value = 0;
+          } else {
+            Get.dialog(AlertDialog(
+              title: const Text('Exit App'),
+              content: const Text('Are you sure you want to exit the app?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    SystemNavigator.pop();
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            ));
+          }
+        }
+      },
+      child: Scaffold(
+        body: Column(
+          children: [
+            Obx(() => Expanded(
+                child: navBody.elementAt(controller.currentNavIndex.value))),
+          ],
+        ),
+        bottomNavigationBar: Obx(
+          () => Theme(
+            data: ThemeData(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
             ),
-            useLegacyColorScheme: false,
-            enableFeedback: false,
-            currentIndex: controller.currentNavIndex.value,
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: secondaryFontColor,
-            // selectedIconTheme: const IconThemeData(color: secondaryFontColor),
-            unselectedItemColor: Colors.grey[500],
-            selectedLabelStyle: const TextStyle(
-              fontFamily: carosMedium,
-              fontSize: 12,
+            child: BottomNavigationBar(
+              unselectedLabelStyle: const TextStyle(
+                fontFamily: carosMedium,
+                fontSize: 12,
+              ),
+              useLegacyColorScheme: false,
+              enableFeedback: false,
+              currentIndex: controller.currentNavIndex.value,
+              type: BottomNavigationBarType.fixed,
+              selectedItemColor: secondaryFontColor,
+              // selectedIconTheme: const IconThemeData(color: secondaryFontColor),
+              unselectedItemColor: Colors.grey[500],
+              selectedLabelStyle: const TextStyle(
+                fontFamily: carosMedium,
+                fontSize: 12,
+              ),
+              backgroundColor: whiteColor,
+              items: navbarItem,
+              onTap: (value) {
+                controller.currentNavIndex.value = value;
+              },
             ),
-            backgroundColor: whiteColor,
-            items: navbarItem,
-            onTap: (value) {
-              controller.currentNavIndex.value = value;
-            },
           ),
         ),
       ),
