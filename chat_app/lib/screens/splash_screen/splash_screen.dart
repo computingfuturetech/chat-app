@@ -5,6 +5,7 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authController = Get.put(AuthController());
     Timer(const Duration(seconds: 1), () {
       SharedPreferences.getInstance().then((prefs) {
         // final bool? isOnboardingDone = prefs.getBool('isOnboardingDone');

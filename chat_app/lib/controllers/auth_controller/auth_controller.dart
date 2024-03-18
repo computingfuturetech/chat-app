@@ -18,9 +18,15 @@ class AuthController extends GetxController {
   final token = ''.obs;
   final userid = ''.obs;
 
+  final username = ''.obs;
+  final email = ''.obs;
+  final image = ''.obs;
+  final phone = ''.obs;
+  final bio = ''.obs;
+
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'http://192.168.0.115:8000/user';
+  final baseURL = 'http://192.168.0.189:8000/user';
 
   signup() async {
     try {
@@ -331,4 +337,101 @@ class AuthController extends GetxController {
   //   }
   //   isLoading(false);
   // }
+
+  getUserDetails() async {
+    // log('Inside getUserDetails');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // prefs.setString('first_name', '');
+      // prefs.setString('last_name', '');
+      // prefs.setString('email', '');
+      // prefs.setString('image', '');
+      // prefs.setString('phone', '');
+      // prefs.setString('bio', '');
+
+      // log('Inside getUserDetails try');
+      if (prefs.getString('token') == null ||
+          prefs.getString('token') == '' ||
+          prefs.getString('token')!.isEmpty) {
+        log('Token is empty');
+        return;
+      }
+      final firstName = prefs.getString('first_name');
+      // log('First Name: $firstName');
+      if (firstName == null || firstName.isEmpty || firstName == '') {
+        log('User details do not exist');
+        try {
+          // log('Inside getUserDetails try try');
+          final url = Uri.parse('$baseURL/update/');
+          // log('URL: $url');
+          final response = await http.post(url, headers: {
+            'Authorization': 'JWT ${prefs.getString('token')}',
+          });
+          // log('Response: $response');
+          final responseJson = json.decode(response.body);
+          // log('Response JSON: $responseJson');
+          if (response.statusCode == 200) {
+            if (responseJson.containsKey('first_name')) {
+              final firstNameValue = responseJson['first_name'];
+              prefs.setString('first_name', firstNameValue ?? '');
+            }
+            if (responseJson.containsKey('last_name')) {
+              final lastNameValue = responseJson['last_name'];
+              prefs.setString('last_name', lastNameValue ?? '');
+            }
+            if (responseJson.containsKey('email')) {
+              final emailValue = responseJson['email'];
+              prefs.setString('email', emailValue ?? '');
+            }
+            if (responseJson.containsKey('image')) {
+              final imageValue = responseJson['image'];
+              prefs.setString('image', imageValue ?? '');
+            }
+            if (responseJson.containsKey('phone')) {
+              final phoneValue = responseJson['phone'];
+              prefs.setString('phone', phoneValue ?? '');
+            }
+            if (responseJson.containsKey('bio')) {
+              final bioValue = responseJson['bio'];
+              prefs.setString('bio', bioValue ?? '');
+            }
+          } else {
+            Get.snackbar('Error', responseJson['error']);
+          }
+        } catch (e) {
+          log('Error: $e');
+        }
+      } else {
+        // log('User details already exist');
+        // log('First Name: ${prefs.getString('first_name')}');
+        // log('Last Name: ${prefs.getString('last_name')}');
+        // log('Email: ${prefs.getString('email')}');
+        // log('Image: ${prefs.getString('image')}');
+        // log('Phone: ${prefs.getString('phone')}');
+        // log('Bio: ${prefs.getString('bio')}');
+
+        username.value =
+            '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
+        email.value = prefs.getString('email')!;
+        image.value = '192.168.0.189:8000${prefs.getString('image')}' ??
+            'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png';
+        phone.value = prefs.getString('phone') ?? '';
+
+        // log('Username: ${username.value}');
+        // log('Email: ${email.value}');
+        // log('Image: ${image.value}');
+        // log('Phone: ${phone.value}');
+        // log('Bio: ${bio.value}');
+      }
+    } catch (e) {
+      log('Error: $e');
+    }
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    getUserDetails();
+  }
 }

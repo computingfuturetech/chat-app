@@ -5,6 +5,7 @@ Widget customAppBar({
   required String title,
   required imageUrl,
   required bool isIcon,
+  searchOnPressed,
 }) {
   return AppBar(
     title: Text(
@@ -19,9 +20,10 @@ Widget customAppBar({
     backgroundColor: primaryFontColor,
     leading: imageUrl != ''
         ? IconButton.outlined(
-            onPressed: () {
-              // Get.to(() => const ProfileSettingScreen());
-            },
+            // onPressed: () {
+            //   Get.to(() => const HomeSearchScreen());
+            // },
+            onPressed: searchOnPressed,
             icon: const Icon(
               size: 20,
               Icons.search,
@@ -32,9 +34,7 @@ Widget customAppBar({
     actions: [
       isIcon
           ? IconButton.outlined(
-              onPressed: () {
-                // Get.to(() => const ProfileSettingScreen());
-              },
+              onPressed: () {},
               icon: Icon(
                 imageUrl,
                 color: whiteColor,
@@ -42,22 +42,35 @@ Widget customAppBar({
               ),
             )
           : imageUrl != ''
-              ? InkWell(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(1000),
-                    child: CachedNetworkImage(
-                      placeholder: (context, url) => const Center(
-                        child: CupertinoActivityIndicator(),
-                      ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                      height: 40,
+              ? imageUrl == null
+                  ? Container(
                       width: 40,
-                      fit: BoxFit.cover,
-                      imageUrl: imageUrl,
-                    ),
-                  ),
-                )
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: lightgreyColor,
+                        borderRadius: BorderRadius.circular(1000),
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        color: primaryFontColor,
+                        size: 30,
+                      ))
+                  : InkWell(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(1000),
+                        child: CachedNetworkImage(
+                          placeholder: (context, url) => const Center(
+                            child: CupertinoActivityIndicator(),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                          height: 40,
+                          width: 40,
+                          fit: BoxFit.cover,
+                          imageUrl: imageUrl,
+                        ),
+                      ),
+                    )
               : Container(),
     ],
   );
