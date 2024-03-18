@@ -1,8 +1,8 @@
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
 
-Widget contactUser(
-  user,
+Widget requestUser(
+  friendRequest,
   userController,
 ) {
   return Column(
@@ -22,16 +22,15 @@ Widget contactUser(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(1000),
                   child: CachedNetworkImage(
-                    placeholder: (context, url) => const Center(
-                      child: CupertinoActivityIndicator(),
-                    ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.person),
-                    height: 50,
-                    width: 50,
-                    fit: BoxFit.cover,
-                    imageUrl: user.image ?? '',
-                  ),
+                      placeholder: (context, url) => const Center(
+                            child: CupertinoActivityIndicator(),
+                          ),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
+                      imageUrl: friendRequest.imageUrl ?? ''),
                 ),
               ),
             ),
@@ -42,7 +41,7 @@ Widget contactUser(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${user.firstName ?? ''} ${user.lastName ?? ''}',
+                  '${friendRequest.firstName} ${friendRequest.lastName}',
                   maxLines: 1,
                   style: const TextStyle(
                     fontFamily: carosMedium,
@@ -50,7 +49,7 @@ Widget contactUser(
                   ),
                 ),
                 Text(
-                  user.bio ?? '',
+                  friendRequest.bio,
                   maxLines: 1,
                   style: const TextStyle(
                     fontFamily: circularStdBook,
@@ -63,10 +62,38 @@ Widget contactUser(
             const Spacer(),
             IconButton.outlined(
               iconSize: 20,
+              style: ButtonStyle(
+                maximumSize: MaterialStateProperty.all(
+                  const Size(40, 40),
+                ),
+                side: MaterialStateProperty.all(
+                  const BorderSide(
+                    color: greenColor,
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+              ),
               onPressed: () {
-                userController.sendFriendRequest(user.id!);
+                userController.acceptFriendRequest(friendRequest.fromUserId);
               },
-              icon: const Icon(CupertinoIcons.person_add),
+              icon: const Icon(CupertinoIcons.checkmark),
+              color: greenColor,
+            ),
+            IconButton.outlined(
+              iconSize: 20,
+              style: ButtonStyle(
+                side: MaterialStateProperty.all(
+                  const BorderSide(
+                    color: redColor,
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+              ),
+              onPressed: () {},
+              icon: const Icon(CupertinoIcons.xmark),
+              color: redColor,
             ),
           ],
         ),

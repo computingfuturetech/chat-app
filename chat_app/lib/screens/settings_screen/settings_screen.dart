@@ -51,8 +51,7 @@ class SettingScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(100),
                             child: CachedNetworkImage(
                               // imageUrl: controller.user.value.profilePic,
-                              imageUrl:
-                                  'https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg',
+                              imageUrl: controller.image.value,
                               height: 60,
                               width: 60,
                               fit: BoxFit.cover,
@@ -65,19 +64,19 @@ class SettingScreen extends StatelessWidget {
                           const SizedBox(
                             width: 20,
                           ),
-                          const Column(
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Nazrul Islam',
-                                style: TextStyle(
+                                controller.username.value,
+                                style: const TextStyle(
                                   color: primaryFontColor,
                                   fontFamily: carosBold,
                                   fontSize: 20,
                                 ),
                               ),
-                              Text(
+                              const Text(
                                 'Never give up',
                                 style: TextStyle(
                                   fontFamily: circularStdBook,
