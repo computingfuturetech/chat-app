@@ -22,6 +22,7 @@ class User(AbstractUser):
 class FriendRequest(models.Model):
     from_user = models.ForeignKey(User, related_name='sent_friend_requests', on_delete=models.CASCADE)
     to_user = models.ForeignKey(User, related_name='received_friend_requests', on_delete=models.CASCADE)
+    request_sent=models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

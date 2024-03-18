@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import ChatRoom,ChatMessage
+from django.db.models import Max
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     members_info = serializers.SerializerMethodField()
@@ -21,4 +22,11 @@ class ChatRoomSerializer(serializers.ModelSerializer):
                     'image': member.image.url if member.image else None
                 })
         return user_info
+    
 
+class ChatMessageSerializer(serializers.ModelSerializer):
+    chat = serializers.CharField(max_length=100)
+    class Meta:
+        model=ChatMessage
+        fields=['chat','user','message']
+    

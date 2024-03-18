@@ -13,9 +13,8 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     list_display=['username','email','image']
-    list_editable = ['image']
-    
+    list_editable = ['image']  
 
 @admin.register(FriendRequest)
 class FriendRequestAdmin(admin.ModelAdmin):
-    list_display = ['from_user', 'to_user', 'is_accepted', 'created_at']
+    list_display = ['from_user', 'to_user', 'is_accepted', 'created_at','request_sent']

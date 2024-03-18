@@ -48,13 +48,13 @@ class ForgetPasswordSerializer(serializers.Serializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['first_name','last_name','phone','image']
+        fields=['first_name','last_name','phone','image','bio']
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ['to_user']
+        fields = ['to_user','request_sent']
 
 class ReceivedFriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
