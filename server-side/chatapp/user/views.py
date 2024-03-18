@@ -281,7 +281,7 @@ class SendFriendRequestView(generics.CreateAPIView):
             return Response({'error': 'Friend request already sent'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(from_user=request.user, to_user=to_user)
+        serializer.save(from_user=request.user, to_user=to_user, request_sent=True)
         return Response({'message': 'Friend request sent successfully'}, status=status.HTTP_201_CREATED)
 
 
@@ -289,7 +289,13 @@ class ReceiveFriendRequestView(generics.ListAPIView):
     serializer_class = ReceivedFriendRequestSerializer
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
-        return FriendRequest.objects.filter(to_user=self.request.user, is_accepted=False)
+        queryset = FriendRequest.objects.filter(to_user=self.request.user, is_accepted=False)
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(from_user__first_name__icontains=search) | \
+                       queryset.filter(from_user__last_name__icontains=search)
+        return queryset
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         friend_requests_data = []
@@ -323,7 +329,7 @@ class AcceptFriendRequestView(generics.UpdateAPIView):
             friend_request.save()
         from_user_id = friend_request.from_user.id
         to_user_id = friend_request.to_user.id
-        chat_room_id = f"{from_user_id}{to_user_id}"
+        chat_room_id = f"{from_user_id}.{to_user_id}"
         chat_room = ChatRoom.objects.create(chat_type='one_to_one', chat_room_id=chat_room_id,member_count=2)
         chat_room.members.add(friend_request.from_user, friend_request.to_user)
         return Response({'message': 'Friend request accepted and chat room created successfully'}, status=status.HTTP_200_OK)
@@ -337,12 +343,17 @@ class ListOfUserView(generics.ListAPIView):
         requested_user = self.request.user
         friend_request_from_ids = FriendRequest.objects.filter(to_user=requested_user, is_accepted=True).values_list('from_user_id', flat=True)
         friend_request_to_ids = FriendRequest.objects.filter(from_user=requested_user, is_accepted=True).values_list('to_user_id', flat=True)
+        requested_user_sent_request_ids = FriendRequest.objects.filter(
+            from_user=requested_user, request_sent=True
+        ).values_list('to_user_id', flat=True)
         friend_ids = set(friend_request_from_ids) | set(friend_request_to_ids)
         search = self.request.GET.get('search')
         if search:
             queryset = User.objects.exclude(id__in=friend_ids).filter(Q(first_name__icontains=search) | Q(last_name__icontains=search))
         else:
             queryset = User.objects.exclude(id__in=friend_ids)
+        queryset = queryset.exclude(id__in=requested_user_sent_request_ids)
+        queryset = queryset.exclude(id=1)
         return queryset
 
 

@@ -22,6 +22,7 @@ class ChatMessage(models.Model):
     chat = models.ForeignKey(ChatRoom, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     message = models.CharField(max_length=255)
+    
     timestamp = models.TimeField(auto_now_add=True)
     datestamp = models.DateField(auto_now_add=True)
 
