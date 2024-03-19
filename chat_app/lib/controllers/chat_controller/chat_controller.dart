@@ -3,11 +3,18 @@ import 'dart:developer';
 import 'package:chat_app/utils/exports.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 class ChatController extends GetxController {
   //variables for image picker
   var imgpath = ''.obs;
   var imglink = ''.obs;
+  var token = ''.obs;
+  final messageController = TextEditingController();
+  final isWriting = false.obs;
+
+  final baseUrl = 'http://192.168.0.189:8000/chat';
+
   checkCameraPermission() async {
     var status = await Permission.camera.status;
     if (status.isDenied) {
@@ -106,6 +113,42 @@ class ChatController extends GetxController {
       Get.snackbar('', 'Document Selected');
     } else {
       Get.snackbar('', 'No Document Selected');
+    }
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    getToken();
+  }
+
+  getToken() async {
+    SharedPreferences.getInstance().then((prefs) {
+      // final bool? isOnboardingDone = prefs.getBool('isOnboardingDone');
+      token.value = prefs.getString('token') ?? '';
+    });
+  }
+
+  sendMessage() async {
+    try {
+      final header = {
+        'Authorization': 'JWT ${token.value}',
+      };
+      final url = Uri.parse('$baseUrl/send_message/');
+      final body = {
+        'message': messageController.text,
+      };
+      final response = await http.post(url, headers: header, body: body);
+
+      log(response.body);
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Message sent');
+        messageController.clear();
+      } else {
+        throw 'Failed to load data';
+      }
+    } catch (e) {
+      throw 'Error: $e';
     }
   }
 }

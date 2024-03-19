@@ -68,14 +68,19 @@ class ContactScreen extends StatelessWidget {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                              child: SpinKitCircle(
-                                color: primartColor,
+                              child: SpinKitFadingCircle(
+                                color: greenColor,
                                 size: 50,
                               ),
                             );
                           } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text('Error: ${snapshot.error}'),
+                            return const Center(
+                              child:
+                                  Text('Error loading data. Please try again'),
+                            );
+                          } else if (snapshot.data!.isEmpty) {
+                            return const Center(
+                              child: Text('No contact found'),
                             );
                           } else {
                             final List<User> users = snapshot.data!;

@@ -1,12 +1,27 @@
-import 'package:chat_app/utils/exports.dart';
-import 'package:flutter/cupertino.dart';
+import 'dart:developer';
 
-class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+import 'package:chat_app/utils/exports.dart';
+import 'package:chat_app/widgets/bottom_sheet_modal.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class ChatScreen extends StatefulWidget {
+  // ignore: prefer_typing_uninitialized_variables
+  final image, username;
+  const ChatScreen({super.key, this.image, this.username});
 
   @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _controller = TextEditingController();
+  final _channel = WebSocketChannel.connect(
+    Uri.parse('ws://192.168.0.189:8000/ws/chat/19.13/'),
+  );
+  @override
   Widget build(BuildContext context) {
-    var chatController = Get.put(ChatController());
+    final chatController = Get.put(ChatController());
     return GestureDetector(
       onHorizontalDragStart: (details) {
         if (details.localPosition.dx < 100) {
@@ -47,12 +62,11 @@ class ChatScreen extends StatelessWidget {
                                   child: CupertinoActivityIndicator(),
                                 ),
                             errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
+                                const Icon(Icons.person),
                             height: 40,
                             width: 40,
                             fit: BoxFit.cover,
-                            imageUrl:
-                                'https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg'),
+                            imageUrl: widget.image),
                       ),
                       Positioned(
                         bottom: 0,
@@ -81,17 +95,19 @@ class ChatScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Column(
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'John Doe',
-                    style: TextStyle(
+                    widget.username,
+                    style: const TextStyle(
                       color: primaryFontColor,
                       fontSize: 14,
                       fontFamily: carosMedium,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'Active Now',
                     style: TextStyle(
                       color: greyColor,
@@ -118,89 +134,97 @@ class ChatScreen extends StatelessWidget {
         body: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                physics: const BouncingScrollPhysics(),
-                itemCount: 20,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        child: Column(
-                          crossAxisAlignment: index % 2 == 0
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: index % 2 == 0
-                                  ? MainAxisAlignment.end
-                                  : MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 15, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: index % 2 == 0
-                                        ? primartColor
-                                        : chatCardColor,
-                                    borderRadius: index % 2 == 0
-                                        ? const BorderRadius.only(
-                                            topLeft: Radius.circular(10),
-                                            bottomLeft: Radius.circular(10),
-                                            bottomRight: Radius.circular(10),
-                                          )
-                                        : const BorderRadius.only(
-                                            topRight: Radius.circular(10),
-                                            bottomLeft: Radius.circular(10),
-                                            bottomRight: Radius.circular(10),
-                                          ),
-                                  ),
-                                  child: Text(
-                                    'Hello',
-                                    style: TextStyle(
-                                      color: index % 2 == 0
-                                          ? whiteColor
-                                          : primaryFontColor,
-                                      fontSize: 12,
-                                      fontFamily: circularStdBook,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            const Text(
-                              '12:00 PM',
-                              textAlign: TextAlign.end,
-                              style: TextStyle(
-                                color: greyColor,
-                                fontSize: 10,
-                                fontFamily: circularStdBook,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: lightgreyColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'Today',
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            color: primaryFontColor,
-                            fontSize: 10,
-                            fontFamily: carosMedium,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
+              //   child: ListView.builder(
+              //     padding: const EdgeInsets.symmetric(horizontal: 8),
+              //     physics: const BouncingScrollPhysics(),
+              //     itemCount: 20,
+              //     itemBuilder: (context, index) {
+              //       return Column(
+              //         children: [
+              //           Container(
+              //             margin: const EdgeInsets.only(top: 10),
+              //             child: Column(
+              //               crossAxisAlignment: index % 2 == 0
+              //                   ? CrossAxisAlignment.end
+              //                   : CrossAxisAlignment.start,
+              //               children: [
+              //                 Row(
+              //                   mainAxisAlignment: index % 2 == 0
+              //                       ? MainAxisAlignment.end
+              //                       : MainAxisAlignment.start,
+              //                   children: [
+              //                     Container(
+              //                       padding: const EdgeInsets.symmetric(
+              //                           horizontal: 15, vertical: 8),
+              //                       decoration: BoxDecoration(
+              //                         color: index % 2 == 0
+              //                             ? primartColor
+              //                             : chatCardColor,
+              //                         borderRadius: index % 2 == 0
+              //                             ? const BorderRadius.only(
+              //                                 topLeft: Radius.circular(10),
+              //                                 bottomLeft: Radius.circular(10),
+              //                                 bottomRight: Radius.circular(10),
+              //                               )
+              //                             : const BorderRadius.only(
+              //                                 topRight: Radius.circular(10),
+              //                                 bottomLeft: Radius.circular(10),
+              //                                 bottomRight: Radius.circular(10),
+              //                               ),
+              //                       ),
+              //                       child: Text(
+              //                         'Hello',
+              //                         style: TextStyle(
+              //                           color: index % 2 == 0
+              //                               ? whiteColor
+              //                               : primaryFontColor,
+              //                           fontSize: 12,
+              //                           fontFamily: circularStdBook,
+              //                         ),
+              //                       ),
+              //                     ),
+              //                   ],
+              //                 ),
+              //                 const SizedBox(height: 5),
+              //                 const Text(
+              //                   '12:00 PM',
+              //                   textAlign: TextAlign.end,
+              //                   style: TextStyle(
+              //                     color: greyColor,
+              //                     fontSize: 10,
+              //                     fontFamily: circularStdBook,
+              //                   ),
+              //                 ),
+              //               ],
+              //             ),
+              //           ),
+              //           Container(
+              //             padding: const EdgeInsets.symmetric(
+              //                 horizontal: 10, vertical: 5),
+              //             decoration: BoxDecoration(
+              //               color: lightgreyColor,
+              //               borderRadius: BorderRadius.circular(6),
+              //             ),
+              //             child: const Text(
+              //               'Today',
+              //               textAlign: TextAlign.end,
+              //               style: TextStyle(
+              //                 color: primaryFontColor,
+              //                 fontSize: 10,
+              //                 fontFamily: carosMedium,
+              //               ),
+              //             ),
+              //           ),
+              //         ],
+              //       );
+              //     },
+              //   ),
+              // ),
+              child: StreamBuilder(
+                stream: _channel.stream,
+                builder: (context, snapshot) {
+                  log('snapshot: ${snapshot.data}');
+                  return Text(snapshot.hasData ? '${snapshot.data}' : '');
                 },
               ),
             ),
@@ -219,227 +243,36 @@ class ChatScreen extends StatelessWidget {
                       showModalBottomSheet(
                         context: context,
                         builder: (BuildContext context) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Column(
-                              children: [
-                                Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 20),
-                                  height: 4,
-                                  width: 40,
-                                  decoration: const BoxDecoration(
-                                    color: grey2Color,
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(20),
-                                    ),
-                                  ),
-                                ),
-                                const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    // const SizedBox(width: 20),
-                                    // Align(
-                                    //   alignment: Alignment.topLeft,
-                                    //   child: InkWell(
-                                    //     onTap: () {
-                                    //       Get.back();
-                                    //     },
-                                    //     child: const Icon(
-                                    //       Icons.close,
-                                    //       color: primaryFontColor,
-                                    //     ),
-                                    //   ),
-                                    // ),
-                                    Text(
-                                      'Share Content',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: primaryFontColor,
-                                        fontSize: 16,
-                                        fontFamily: carosMedium,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                    chatController.pickImage(
-                                        context, ImageSource.camera);
-                                  },
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: settingsCardColor,
-                                      borderRadius: BorderRadius.circular(1000),
-                                    ),
-                                    child: const Icon(
-                                      CupertinoIcons.camera,
-                                      color: greyColor,
-                                    ),
-                                  ),
-                                  title: const Text(
-                                    'Camera',
-                                    style: TextStyle(
-                                      fontFamily: carosMedium,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                    chatController.documentPicker(context);
-                                  },
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: settingsCardColor,
-                                      borderRadius: BorderRadius.circular(1000),
-                                    ),
-                                    child: const Icon(
-                                      // Icons.insert_drive_file_outlined,
-                                      CupertinoIcons.doc_text,
-                                      color: greyColor,
-                                    ),
-                                  ),
-                                  title: const Text(
-                                    'Documents',
-                                    style: TextStyle(
-                                      fontFamily: carosMedium,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  subtitle: const Text(
-                                    'Share your files',
-                                    style: TextStyle(
-                                      fontFamily: circularStdBook,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                    chatController.filePicker(context);
-                                  },
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: settingsCardColor,
-                                      borderRadius: BorderRadius.circular(1000),
-                                    ),
-                                    child: const Icon(
-                                      Icons.bar_chart_rounded,
-                                      color: greyColor,
-                                    ),
-                                  ),
-                                  title: const Text(
-                                    'Media',
-                                    style: TextStyle(
-                                      fontFamily: carosMedium,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  subtitle: const Text(
-                                    'Share photos and videos',
-                                    style: TextStyle(
-                                      fontFamily: circularStdBook,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                    Get.to(() => const ProfileSettingScreen(),
-                                        transition: Transition.rightToLeft);
-                                  },
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: settingsCardColor,
-                                      borderRadius: BorderRadius.circular(1000),
-                                    ),
-                                    child: const Icon(
-                                      CupertinoIcons.person_circle,
-                                      color: greyColor,
-                                    ),
-                                  ),
-                                  title: const Text(
-                                    'Contact',
-                                    style: TextStyle(
-                                      fontFamily: carosMedium,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  subtitle: const Text(
-                                    'Share your contacts',
-                                    style: TextStyle(
-                                      fontFamily: circularStdBook,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                    Get.to(() => const ProfileSettingScreen(),
-                                        transition: Transition.rightToLeft);
-                                  },
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: settingsCardColor,
-                                      borderRadius: BorderRadius.circular(1000),
-                                    ),
-                                    child: const Icon(
-                                      Icons.location_on_outlined,
-                                      color: greyColor,
-                                    ),
-                                  ),
-                                  title: const Text(
-                                    'Location',
-                                    style: TextStyle(
-                                      fontFamily: carosMedium,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  subtitle: const Text(
-                                    'Share your location',
-                                    style: TextStyle(
-                                      fontFamily: circularStdBook,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                          return bottomModalSheet(chatController, context);
                         },
                       );
                     },
-                    child: const Icon(
-                      Icons.attach_file,
-                      color: primaryFontColor,
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: lightgreyColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.attach_file,
+                        color: primaryFontColor,
+                      ),
                     ),
                   ),
 
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
+                      onTap: () {
+                        chatController.isWriting.value = true;
+                        log('value: ${chatController.isWriting.value}');
+                      },
+                      onFieldSubmitted: (value) {
+                        chatController.isWriting.value = false;
+                        log('value: ${chatController.isWriting.value}');
+                      },
+                      // controller: chatController.messageController,
+                      controller: _controller,
                       cursorColor: secondaryFontColor,
                       decoration: InputDecoration(
                         fillColor: lightgreyColor,
@@ -460,26 +293,54 @@ class ChatScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Row(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          chatController.pickImage(context, ImageSource.camera);
-                        },
-                        child: const Icon(
-                          CupertinoIcons.camera,
-                          color: primaryFontColor,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      InkWell(
-                        onTap: () {},
-                        child: const Icon(
-                          CupertinoIcons.mic,
-                          color: primaryFontColor,
-                        ),
-                      )
-                    ],
+                  Obx(
+                    () => chatController.isWriting.value
+                        ? InkWell(
+                            onTap: () {
+                              log('inside send');
+                              if (_controller.text.isNotEmpty) {
+                                log('inside send if');
+                                _channel.sink.add(_controller.text);
+                              }
+                              // chatController.sendMessage();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.only(
+                                  left: 12, right: 8, top: 10, bottom: 10),
+                              decoration: BoxDecoration(
+                                color: primartColor,
+                                borderRadius: BorderRadius.circular(1000),
+                              ),
+                              child: const Icon(
+                                size: 20,
+                                Icons.send,
+                                color: whiteColor,
+                              ),
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  chatController.pickImage(
+                                      context, ImageSource.camera);
+                                },
+                                child: const Icon(
+                                  CupertinoIcons.camera,
+                                  color: primaryFontColor,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              InkWell(
+                                onTap: () {},
+                                child: const Icon(
+                                  CupertinoIcons.mic,
+                                  color: primaryFontColor,
+                                ),
+                              )
+                            ],
+                          ),
                   ),
                   // const SizedBox(width: 20),
                 ],

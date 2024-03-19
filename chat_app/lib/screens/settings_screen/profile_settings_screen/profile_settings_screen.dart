@@ -6,6 +6,7 @@ class ProfileSettingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authController = Get.find<AuthController>();
     return SafeArea(
       child: Scaffold(
         backgroundColor: primaryFontColor,
@@ -34,8 +35,7 @@ class ProfileSettingScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(100),
                   child: CachedNetworkImage(
                     // imageUrl: controller.user.value.profilePic,
-                    imageUrl:
-                        'https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg',
+                    imageUrl: authController.image.value,
                     height: 100,
                     width: 100,
                     fit: BoxFit.cover,
@@ -45,18 +45,18 @@ class ProfileSettingScreen extends StatelessWidget {
                         const Icon(Icons.error),
                   ),
                 ),
-                const Text(
+                Text(
                   // controller.user.value.name,
-                  'Jhon Abraham',
-                  style: TextStyle(
+                  authController.username.value,
+                  style: const TextStyle(
                     color: whiteColor,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Text(
-                  '@jhonabraham',
-                  style: TextStyle(
+                Text(
+                  authController.email.value,
+                  style: const TextStyle(
                     color: subtitleColor,
                     fontSize: 12,
                   ),
@@ -130,20 +130,20 @@ class ProfileSettingScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const Expanded(
+              Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.only(top: 10),
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: Column(
                       children: [
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Display Name',
                                 style: TextStyle(
                                   fontFamily: circularStdBook,
@@ -152,16 +152,16 @@ class ProfileSettingScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                // controller.user.value.name,
-                                'Jhon Abraham',
-                                style: TextStyle(
+                                authController.username.value,
+                                // 'Jhon Abraham',
+                                style: const TextStyle(
                                   fontFamily: carosMedium,
                                   fontSize: 18,
                                   color: primaryFontColor,
                                 ),
                               ),
-                              SizedBox(height: 10),
-                              Text(
+                              const SizedBox(height: 10),
+                              const Text(
                                 'Email Address',
                                 style: TextStyle(
                                   fontFamily: circularStdBook,
@@ -171,15 +171,16 @@ class ProfileSettingScreen extends StatelessWidget {
                               ),
                               Text(
                                 // controller.user.value.email,
-                                'jhonabraham20@gmail.com',
-                                style: TextStyle(
+                                authController.email.value,
+
+                                style: const TextStyle(
                                   fontFamily: carosMedium,
                                   fontSize: 18,
                                   color: primaryFontColor,
                                 ),
                               ),
-                              SizedBox(height: 10),
-                              Text(
+                              const SizedBox(height: 10),
+                              const Text(
                                 'Address',
                                 style: TextStyle(
                                   fontFamily: circularStdBook,
@@ -187,7 +188,7 @@ class ProfileSettingScreen extends StatelessWidget {
                                   color: subtitleColor,
                                 ),
                               ),
-                              Text(
+                              const Text(
                                 // controller.user.value.address,
                                 '33 street west subidbazar, sylhet',
                                 style: TextStyle(
@@ -196,8 +197,8 @@ class ProfileSettingScreen extends StatelessWidget {
                                   color: primaryFontColor,
                                 ),
                               ),
-                              SizedBox(height: 10),
-                              Text(
+                              const SizedBox(height: 10),
+                              const Text(
                                 'Phone Number',
                                 style: TextStyle(
                                   fontFamily: circularStdBook,
@@ -206,16 +207,15 @@ class ProfileSettingScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                // controller.user.value.phone,
-                                '(320) 555-0104',
-                                style: TextStyle(
+                                authController.phone.value,
+                                style: const TextStyle(
                                   fontFamily: carosMedium,
                                   fontSize: 18,
                                   color: primaryFontColor,
                                 ),
                               ),
-                              SizedBox(height: 10),
-                              Text(
+                              const SizedBox(height: 10),
+                              const Text(
                                 'Bio',
                                 style: TextStyle(
                                   fontFamily: circularStdBook,
@@ -224,8 +224,8 @@ class ProfileSettingScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                'Never Give up',
-                                style: TextStyle(
+                                authController.bio.value,
+                                style: const TextStyle(
                                   fontFamily: carosMedium,
                                   fontSize: 18,
                                   color: primaryFontColor,

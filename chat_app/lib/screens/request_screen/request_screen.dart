@@ -61,14 +61,19 @@ class RequestScreen extends StatelessWidget {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                              child: SpinKitCircle(
-                                color: primartColor,
+                              child: SpinKitFadingCircle(
+                                color: greenColor,
                                 size: 50,
                               ),
                             );
                           } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text('Error: ${snapshot.error}'),
+                            return const Center(
+                              child:
+                                  Text('Error loading data. Please try again'),
+                            );
+                          } else if (!snapshot.hasData) {
+                            return const Center(
+                              child: Text('No requests found'),
                             );
                           } else {
                             final List<FriendRequest> users = snapshot.data!;
