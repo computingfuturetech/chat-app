@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 import os
 from django.db import models
 
+
 def user_image_path(instance, filename):
     user_id = instance.id
     _, file_extension = os.path.splitext(filename)
@@ -31,3 +32,8 @@ class EmailOtp(models.Model):
     otp = models.CharField(max_length=6)
     expiration_time = models.TimeField()
 
+class OnlineUser(models.Model):
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.user.username

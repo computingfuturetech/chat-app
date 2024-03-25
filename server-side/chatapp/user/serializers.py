@@ -78,3 +78,8 @@ class UserOnlineStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['is_online']
+
+class UserSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = User
+		fields = ['id', 'image', 'first_name', 'last_name']

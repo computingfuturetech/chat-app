@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User,FriendRequest
+from .models import User,FriendRequest,OnlineUser
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -18,3 +18,5 @@ class UserAdmin(BaseUserAdmin):
 @admin.register(FriendRequest)
 class FriendRequestAdmin(admin.ModelAdmin):
     list_display = ['from_user', 'to_user', 'is_accepted', 'created_at','request_sent']
+
+admin.site.register(OnlineUser)

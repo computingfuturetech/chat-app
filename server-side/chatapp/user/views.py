@@ -354,6 +354,7 @@ class ListOfUserView(generics.ListAPIView):
             queryset = User.objects.exclude(id__in=friend_ids)
         queryset = queryset.exclude(id__in=requested_user_sent_request_ids)
         queryset = queryset.exclude(id=1)
+        queryset = queryset.exclude(id=requested_user.id)
         return queryset
 
 

@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from datetime import timedelta
 
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -35,13 +37,14 @@ SECRET_KEY = 'django-insecure-+aa7px#%eo$*$dhz+v9jpv#ftb#xu0asbk0j4pk*i+9pig&0xz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','10.0.2.2','192.168.100.49','192.168.0.115','192.168.0.122','192.168.0.189']
+ALLOWED_HOSTS = ['127.0.0.1','10.0.2.2','192.168.100.49','192.168.0.115','*','192.168.0.189']
 
 SITE_ID=2
 
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,8 +85,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
+
 
 CRONJOBS = [
     ('*/1 * * * *', 'user.cron.delete_otp'),
@@ -114,7 +118,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'chatapp.wsgi.application'
+
+ASGI_APPLICATION = 'chatapp.asgi.application'
 
 
 # Database
@@ -147,6 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+WSGI_APPLICATION = 'chatapp.wsgi.application'
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
