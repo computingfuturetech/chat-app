@@ -76,9 +76,9 @@ class SettingScreen extends StatelessWidget {
                                   fontSize: 20,
                                 ),
                               ),
-                              const Text(
-                                'Never give up',
-                                style: TextStyle(
+                              Text(
+                                controller.bio.value.toString(),
+                                style: const TextStyle(
                                   fontFamily: circularStdBook,
                                   fontSize: 12,
                                   color: subtitleColor,

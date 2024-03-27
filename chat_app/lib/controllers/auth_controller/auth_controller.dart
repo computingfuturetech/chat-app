@@ -375,26 +375,33 @@ class AuthController extends GetxController {
             if (responseJson.containsKey('first_name')) {
               final firstNameValue = responseJson['first_name'];
               prefs.setString('first_name', firstNameValue ?? '');
-            }
-            if (responseJson.containsKey('last_name')) {
-              final lastNameValue = responseJson['last_name'];
-              prefs.setString('last_name', lastNameValue ?? '');
+              if (responseJson.containsKey('last_name')) {
+                final lastNameValue = responseJson['last_name'];
+                prefs.setString('last_name', lastNameValue ?? '');
+                username.value =
+                    '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
+              }
             }
             if (responseJson.containsKey('email')) {
               final emailValue = responseJson['email'];
               prefs.setString('email', emailValue ?? '');
+              email.value = prefs.getString('email')!;
             }
             if (responseJson.containsKey('image')) {
               final imageValue = responseJson['image'];
               prefs.setString('image', imageValue ?? '');
+              image.value =
+                  'http://192.168.0.189:8000${prefs.getString('image')}';
             }
             if (responseJson.containsKey('phone')) {
               final phoneValue = responseJson['phone'];
               prefs.setString('phone', phoneValue ?? '');
+              phone.value = prefs.getString('phone') ?? '';
             }
             if (responseJson.containsKey('bio')) {
               final bioValue = responseJson['bio'];
               prefs.setString('bio', bioValue ?? '');
+              bio.value = prefs.getString('bio') ?? '';
             }
           } else {
             Get.snackbar('Error', responseJson['error']);
@@ -414,9 +421,9 @@ class AuthController extends GetxController {
         username.value =
             '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
         email.value = prefs.getString('email')!;
-        image.value = '192.168.0.189:8000${prefs.getString('image')}' ??
-            'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png';
+        image.value = 'http://192.168.0.189:8000${prefs.getString('image')}';
         phone.value = prefs.getString('phone') ?? '';
+        bio.value = prefs.getString('bio') ?? '';
 
         // log('Username: ${username.value}');
         // log('Email: ${email.value}');

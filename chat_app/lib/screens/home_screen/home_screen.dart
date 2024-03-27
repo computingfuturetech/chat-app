@@ -64,6 +64,16 @@ class HomeScreen extends StatelessWidget {
                       return const Center(
                         child: Text('No results found'),
                       );
+                    }
+                    if (snapshot.hasError) {
+                      return const Center(
+                        child: Text('Error fetching data'),
+                      );
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(
+                        child: Text('No data found'),
+                      );
                     } else {
                       final chatRooms = snapshot.data;
                       return ListView.builder(
@@ -74,8 +84,8 @@ class HomeScreen extends StatelessWidget {
                           return homeUsers(
                             '${chatRoom.membersInfo?[0].firstName} ${chatRoom.membersInfo![0].lastName}',
                             chatRoom.membersInfo?[0].bio,
-                            chatRoom.membersInfo?[0].image,
-                            chatRoom.lastMessage,
+                            'http://192.168.0.189:8000${chatRoom.membersInfo?[0].image}',
+                            chatRoom.lastMessage?.message ?? '',
                           );
                         },
                       );

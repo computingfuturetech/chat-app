@@ -4,7 +4,6 @@ import 'package:chat_app/models/chat_room/chat_room.dart';
 import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/models/user_model/user_model.dart';
 import 'package:chat_app/utils/exports.dart';
-import 'package:get/get_state_manager/src/simple/list_notifier.dart';
 import 'package:http/http.dart' as http;
 
 class UserController extends GetxController {
