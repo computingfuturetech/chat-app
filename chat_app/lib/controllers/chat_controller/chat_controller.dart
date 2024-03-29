@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:chat_app/utils/exports.dart';
 import 'package:file_picker/file_picker.dart';
@@ -13,7 +15,7 @@ class ChatController extends GetxController {
   final messageController = TextEditingController();
   final isWriting = false.obs;
 
-  final baseUrl = 'http://192.168.0.189:8000/chat';
+  final baseUrl = 'https://59e2-182-185-217-227.ngrok-free.app/chat';
 
   checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -36,7 +38,7 @@ class ChatController extends GetxController {
     }
   }
 
-  pickImage(context, source) async {
+  pickImage(context, source, channel) async {
     // Request permissions
 
     // await Permission.photos.request();
@@ -61,6 +63,7 @@ class ChatController extends GetxController {
         }
 
         imgpath.value = img.path;
+        sendImage(channel, img.path);
         // VxToast.show(context, msg: "Image selected");
         Get.snackbar('', 'Image Selected');
       } on PlatformException catch (e) {
@@ -73,6 +76,22 @@ class ChatController extends GetxController {
       }
       // Handle denied or permanently denied
       Get.snackbar("Error", "Permission denied");
+    }
+  }
+
+  sendImage(channel, imagePath) async {
+    try {
+      // Read the image file as bytes
+      final file = File(imagePath);
+      final bytes = await file.readAsBytes();
+
+      // Convert bytes to Uint8List
+      final imageBytes = Uint8List.fromList(bytes);
+
+      // Send the image as a binary message
+      channel.sink.add(jsonEncode({'type': 'image_type', 'image': bytes}));
+    } catch (e) {
+      log('Error sending image: $e');
     }
   }
 

@@ -26,7 +26,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'http://192.168.0.189:8000/user';
+  final baseURL = 'https://59e2-182-185-217-227.ngrok-free.app/user';
 
   signup() async {
     try {
@@ -243,6 +243,13 @@ class AuthController extends GetxController {
       usernameController.clear();
       emailController.clear();
       passwordController.clear();
+      sharedPreferences.remove('first_name');
+      sharedPreferences.remove('last_name');
+      sharedPreferences.remove('email');
+      sharedPreferences.remove('image');
+      sharedPreferences.remove('phone');
+      sharedPreferences.remove('bio');
+
       userid.value = '';
       token.value = '';
 
@@ -391,7 +398,7 @@ class AuthController extends GetxController {
               final imageValue = responseJson['image'];
               prefs.setString('image', imageValue ?? '');
               image.value =
-                  'http://192.168.0.189:8000${prefs.getString('image')}';
+                  'https://59e2-182-185-217-227.ngrok-free.app/user/list_of_user${prefs.getString('image')}';
             }
             if (responseJson.containsKey('phone')) {
               final phoneValue = responseJson['phone'];
@@ -421,7 +428,8 @@ class AuthController extends GetxController {
         username.value =
             '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
         email.value = prefs.getString('email')!;
-        image.value = 'http://192.168.0.189:8000${prefs.getString('image')}';
+        image.value =
+            'https://59e2-182-185-217-227.ngrok-free.app/user/list_of_user${prefs.getString('image')}';
         phone.value = prefs.getString('phone') ?? '';
         bio.value = prefs.getString('bio') ?? '';
 
