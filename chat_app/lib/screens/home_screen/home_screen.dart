@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:chat_app/controllers/user_controller/user_controller.dart';
+import 'package:chat_app/models/chat_room/chat_room.dart';
 import 'package:chat_app/screens/home_screen/search_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/home_screen_users.dart';
@@ -51,16 +54,17 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(top: 10),
-                child: StreamBuilder(
+                child: StreamBuilder<List<Chatroom>>(
                   stream: controller.fetchChatRoomsData(),
                   builder: (context, snapshot) {
+                    log('snapshot: ${snapshot.data}');
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SpinKitFadingCircle(
                         color: greenColor,
                         size: 50,
                       );
                     }
-                    if (snapshot.data!.isEmpty) {
+                    if (!snapshot.hasData) {
                       return const Center(
                         child: Text('No results found'),
                       );
@@ -84,7 +88,7 @@ class HomeScreen extends StatelessWidget {
                           return homeUsers(
                             '${chatRoom.membersInfo?[0].firstName} ${chatRoom.membersInfo![0].lastName}',
                             chatRoom.membersInfo?[0].bio,
-                            'http://192.168.0.189:8000${chatRoom.membersInfo?[0].image}',
+                            'https://59e2-182-185-217-227.ngrok-free.app${chatRoom.membersInfo?[0].image}',
                             chatRoom.lastMessage?.message ?? '',
                           );
                         },

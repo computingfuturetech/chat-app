@@ -1,7 +1,9 @@
+import 'package:chat_app/services/chat_message_database_service.dart';
+import 'package:chat_app/services/database_services.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/services.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(
@@ -13,6 +15,11 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+  final LocalDatabaseService localDatabaseService = LocalDatabaseService();
+  final MessageDatabaseService messageDatabaseService =
+      MessageDatabaseService();
+  await messageDatabaseService.initDatabase();
+  await localDatabaseService.initDatabase();
   runApp(const MyApp());
 }
 

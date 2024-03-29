@@ -34,32 +34,37 @@ class Home extends StatelessWidget {
           if (controller.currentNavIndex.value != 0) {
             controller.currentNavIndex.value = 0;
           } else {
-            Get.dialog(AlertDialog(
-              title: const Text('Exit App'),
-              content: const Text('Are you sure you want to exit the app?'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Get.back();
-                  },
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    SystemNavigator.pop();
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            ));
+            Get.dialog(
+              AlertDialog(
+                title: const Text('Exit App'),
+                content: const Text('Are you sure you want to exit the app?'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Get.back();
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      SystemNavigator.pop();
+                    },
+                    child: const Text('Yes'),
+                  ),
+                ],
+              ),
+            );
           }
         }
       },
       child: Scaffold(
         body: Column(
           children: [
-            Obx(() => Expanded(
-                child: navBody.elementAt(controller.currentNavIndex.value))),
+            Obx(
+              () => Expanded(
+                child: navBody.elementAt(controller.currentNavIndex.value),
+              ),
+            ),
           ],
         ),
         bottomNavigationBar: Obx(
@@ -69,6 +74,7 @@ class Home extends StatelessWidget {
               highlightColor: Colors.transparent,
             ),
             child: BottomNavigationBar(
+              elevation: 0,
               unselectedLabelStyle: const TextStyle(
                 fontFamily: carosMedium,
                 fontSize: 12,
