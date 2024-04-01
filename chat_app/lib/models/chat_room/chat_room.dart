@@ -11,54 +11,80 @@ String chatroomToJson(List<Chatroom> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class Chatroom {
-  final String chatRoomId;
-  final String chatType;
-  final int memberCount; // Ensure memberCount is of type int
-  final List<MembersInfo>? membersInfo;
-  final LastMessage? lastMessage;
+  int id;
+  String chatRoomId;
+  String chatType;
+  int memberCount;
+  List<MembersInfo> membersInfo;
+  LastMessage lastMessage;
 
   Chatroom({
+    required this.id,
     required this.chatRoomId,
     required this.chatType,
     required this.memberCount,
-    this.membersInfo,
-    this.lastMessage,
+    required this.membersInfo,
+    required this.lastMessage,
   });
 
+  Chatroom copyWith({
+    int? id,
+    String? chatRoomId,
+    String? chatType,
+    int? memberCount,
+    List<MembersInfo>? membersInfo,
+    LastMessage? lastMessage,
+  }) =>
+      Chatroom(
+        id: id ?? this.id,
+        chatRoomId: chatRoomId ?? this.chatRoomId,
+        chatType: chatType ?? this.chatType,
+        memberCount: memberCount ?? this.memberCount,
+        membersInfo: membersInfo ?? this.membersInfo,
+        lastMessage: lastMessage ?? this.lastMessage,
+      );
+
   factory Chatroom.fromJson(Map<String, dynamic> json) => Chatroom(
+        id: json["id"],
         chatRoomId: json["chat_room_id"],
         chatType: json["chat_type"],
         memberCount: json["member_count"],
-        membersInfo: json["members_info"] == null
-            ? []
-            : List<MembersInfo>.from(
-                json["members_info"].map((x) => MembersInfo.fromJson(x))),
-        lastMessage: json["last_message"] == null
-            ? null
-            : LastMessage.fromJson(json["last_message"]),
+        membersInfo: List<MembersInfo>.from(
+            json["members_info"].map((x) => MembersInfo.fromJson(x))),
+        lastMessage: LastMessage.fromJson(json["last_message"]),
       );
 
   Map<String, dynamic> toJson() => {
+        "id": id,
         "chat_room_id": chatRoomId,
         "chat_type": chatType,
         "member_count": memberCount,
-        "members_info": membersInfo == null
-            ? []
-            : List<dynamic>.from(membersInfo!.map((x) => x.toJson())),
-        "last_message": lastMessage?.toJson(),
+        "members_info": List<dynamic>.from(membersInfo.map((x) => x.toJson())),
+        "last_message": lastMessage.toJson(),
       };
 }
 
 class LastMessage {
-  final String message;
-  final int userId;
-  final String timestamp;
+  String message;
+  dynamic userId;
+  String timestamp;
 
   LastMessage({
     required this.message,
     required this.userId,
     required this.timestamp,
   });
+
+  LastMessage copyWith({
+    String? message,
+    dynamic userId,
+    String? timestamp,
+  }) =>
+      LastMessage(
+        message: message ?? this.message,
+        userId: userId ?? this.userId,
+        timestamp: timestamp ?? this.timestamp,
+      );
 
   factory LastMessage.fromJson(Map<String, dynamic> json) => LastMessage(
         message: json["message"],
@@ -74,19 +100,34 @@ class LastMessage {
 }
 
 class MembersInfo {
-  final int id;
-  final String firstName;
-  final String lastName;
-  final String bio;
-  final dynamic image;
+  int id;
+  String firstName;
+  String lastName;
+  String bio;
+  String image;
 
   MembersInfo({
     required this.id,
     required this.firstName,
     required this.lastName,
     required this.bio,
-    this.image,
+    required this.image,
   });
+
+  MembersInfo copyWith({
+    int? id,
+    String? firstName,
+    String? lastName,
+    String? bio,
+    String? image,
+  }) =>
+      MembersInfo(
+        id: id ?? this.id,
+        firstName: firstName ?? this.firstName,
+        lastName: lastName ?? this.lastName,
+        bio: bio ?? this.bio,
+        image: image ?? this.image,
+      );
 
   factory MembersInfo.fromJson(Map<String, dynamic> json) => MembersInfo(
         id: json["id"],

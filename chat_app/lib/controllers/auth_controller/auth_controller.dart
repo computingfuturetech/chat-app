@@ -26,7 +26,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'https://59e2-182-185-217-227.ngrok-free.app/user';
+  final baseURL = 'https://2121-182-185-212-155.ngrok-free.app/user';
 
   signup() async {
     try {
@@ -112,6 +112,7 @@ class AuthController extends GetxController {
         prefs.setString('user_id', responseJson['user_id'].toString());
         emailController.clear();
         passwordController.clear();
+        getUserDetails();
         Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
       } else if (response.statusCode == 400) {
         isLoading(false);
@@ -282,6 +283,8 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         prefs.setString('token', responseJson['token']);
         prefs.setString('user_id', responseJson['user_id'].toString());
+        userid.value = responseJson['user_id'].toString();
+        // getUserDetails();
         Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
       } else {
         Get.snackbar('Error', responseJson['error']);
@@ -377,7 +380,7 @@ class AuthController extends GetxController {
           });
           // log('Response: $response');
           final responseJson = json.decode(response.body);
-          // log('Response JSON: $responseJson');
+          log('Response JSON: $responseJson');
           if (response.statusCode == 200) {
             if (responseJson.containsKey('first_name')) {
               final firstNameValue = responseJson['first_name'];
@@ -397,8 +400,7 @@ class AuthController extends GetxController {
             if (responseJson.containsKey('image')) {
               final imageValue = responseJson['image'];
               prefs.setString('image', imageValue ?? '');
-              image.value =
-                  'https://59e2-182-185-217-227.ngrok-free.app/user/list_of_user${prefs.getString('image')}';
+              image.value = '$baseURL${prefs.getString('image')}';
             }
             if (responseJson.containsKey('phone')) {
               final phoneValue = responseJson['phone'];
@@ -409,6 +411,12 @@ class AuthController extends GetxController {
               final bioValue = responseJson['bio'];
               prefs.setString('bio', bioValue ?? '');
               bio.value = prefs.getString('bio') ?? '';
+            }
+            if (responseJson.containsKey('id')) {
+              final idValue = responseJson['id'];
+              prefs.setString('id', idValue.toString());
+
+              userid.value = prefs.getString('id')!;
             }
           } else {
             Get.snackbar('Error', responseJson['error']);
@@ -428,10 +436,10 @@ class AuthController extends GetxController {
         username.value =
             '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
         email.value = prefs.getString('email')!;
-        image.value =
-            'https://59e2-182-185-217-227.ngrok-free.app/user/list_of_user${prefs.getString('image')}';
+        image.value = '$baseURL${prefs.getString('image')}';
         phone.value = prefs.getString('phone') ?? '';
         bio.value = prefs.getString('bio') ?? '';
+        userid.value = prefs.getString('id')!;
 
         // log('Username: ${username.value}');
         // log('Email: ${email.value}');

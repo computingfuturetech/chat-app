@@ -1,15 +1,14 @@
-import 'dart:async';
-import 'dart:developer';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'dart:convert';
+import 'dart:developer';
+
 import 'package:chat_app/models/chat_room/chat_room.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class LocalDatabaseService {
   late Database _database;
-  bool _isInitialized = false; // Track initialization state
+  bool _isInitialized = false;
 
-  // Initialize the database
   Future<void> initDatabase() async {
     try {
       log('Initializing database...');
@@ -18,30 +17,27 @@ class LocalDatabaseService {
       _database = await openDatabase(
         path,
         onCreate: (db, version) {
-          // Create tables if they don't exist
           log('Creating database tables...');
           db.execute(
-            'CREATE TABLE chat_rooms(chat_room_id TEXT PRIMARY KEY, chat_type TEXT, member_count INTEGER, members_info TEXT, last_message TEXT)',
+            'CREATE TABLE chat_rooms(id INTEGER PRIMARY KEY, chat_room_id TEXT , chat_type TEXT, member_count INTEGER, members_info TEXT, last_message TEXT)',
           );
         },
         version: 1,
       );
-      _isInitialized = true; // Mark as initialized
+      _isInitialized = true;
       log('Database initialized successfully!');
     } catch (e) {
       log('Error initializing database: $e');
-      rethrow; // Rethrow the error to indicate initialization failure
+      rethrow;
     }
   }
 
-  // Ensure the database is initialized before performing any operations
   Future<void> ensureInitialized() async {
     if (!_isInitialized) {
-      await initDatabase(); // Initialize if not already done
+      await initDatabase();
     }
   }
 
-  // Fetch chat room data from the local database
   Stream<List<Chatroom>> fetchChatRoomsData() async* {
     try {
       log('Fetching chat rooms data...');
@@ -49,13 +45,11 @@ class LocalDatabaseService {
       log('Chat rooms data: $rows');
 
       final chatRooms = rows.map((row) {
-        // Parse the JSON string into a LastMessage object
-        final LastMessage lastMessage = LastMessage.fromJson(
-          json.decode(row['last_message'] as String),
-        );
+        final lastMessage =
+            LastMessage.fromJson(json.decode(row['last_message'] as String));
 
-        // Create the Chatroom object
         return Chatroom(
+          id: row['id'] as int,
           chatRoomId: row['chat_room_id'] as String,
           chatType: row['chat_type'] as String,
           memberCount: row['member_count'] as int,
@@ -68,11 +62,10 @@ class LocalDatabaseService {
       yield chatRooms;
     } catch (e) {
       log('Error fetching chat rooms data: $e');
-      rethrow; // Rethrow the error for better error handling
+      rethrow;
     }
   }
 
-// Helper function to parse the members info
   List<MembersInfo> parseMembersInfo(String membersInfoJson) {
     final List<Map<String, dynamic>> membersInfoMapList =
         List<Map<String, dynamic>>.from(json.decode(membersInfoJson) as List);
@@ -81,9 +74,8 @@ class LocalDatabaseService {
         .toList();
   }
 
-  // Save chat room data to the local database
   Future<void> saveChatRoomData(Chatroom chatRoom) async {
-    await ensureInitialized(); // Ensure database is initialized
+    await ensureInitialized();
     await _database.insert(
       'chat_rooms',
       chatRoom.toJson(),
@@ -92,8 +84,9 @@ class LocalDatabaseService {
   }
 
   Future<void> updateChatRooms(List<Chatroom> chatRooms) async {
+    log('Updating chat rooms...');
     try {
-      await ensureInitialized(); // Ensure database is initialized
+      await ensureInitialized();
 
       log('Updating chat rooms...');
       await _database.transaction((txn) async {
@@ -101,8 +94,8 @@ class LocalDatabaseService {
         for (final chatRoom in chatRooms) {
           log('Updating chat room ${chatRoom.chatRoomId}');
 
-          // Convert membersInfo and lastMessage to JSON strings
           final Map<String, dynamic> jsonData = {
+            "id": chatRoom.id,
             'chat_room_id': chatRoom.chatRoomId,
             'chat_type': chatRoom.chatType,
             'member_count': chatRoom.memberCount,
@@ -112,7 +105,6 @@ class LocalDatabaseService {
 
           log('\n\n Chatroom Data under db: $jsonData');
 
-          // Perform database update
           final rowsAffected = await txn.update(
             'chat_rooms',
             jsonData,
@@ -121,7 +113,6 @@ class LocalDatabaseService {
           );
 
           if (rowsAffected == 0) {
-            // If no rows were affected, insert the data instead
             log('Chat room ${chatRoom.chatRoomId} not found, inserting instead...');
             await txn.insert(
               'chat_rooms',
