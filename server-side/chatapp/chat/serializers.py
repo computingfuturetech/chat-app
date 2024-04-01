@@ -4,18 +4,6 @@ from django.db.models import Max
 from rest_framework import serializers
 from .models import ChatRoom, ChatMessage
 
-class ChatMessageSerializer(serializers.ModelSerializer):
-	userName = serializers.SerializerMethodField()
-	userImage = serializers.ImageField(source='user.image')
-
-	class Meta:
-		model = ChatMessage
-		exclude = ['id', 'chat']
-
-	def get_userName(self, Obj):
-		return Obj.user.first_name + ' ' + Obj.user.last_name
-
-
 class ChatRoomSerializer(serializers.ModelSerializer):
     members_info = serializers.SerializerMethodField()
 
@@ -30,17 +18,16 @@ class ChatRoomSerializer(serializers.ModelSerializer):
             if member.id != request.user.id:  
                 user_info.append({
                     'id':member.id,
-                    'first_name': member.first_name,
+                    'first_name': member.first_name if member.first_name else member.username,
                     'last_name': member.last_name,
                     'bio': member.bio,
-                    'image': member.image.url if member.image else None
+                    'image': member.image.url if member.image else ''
                 })
         return user_info
     
 
 class ChatMessageSerializer(serializers.ModelSerializer):
-    chat = serializers.CharField(max_length=100)
     class Meta:
         model=ChatMessage
-        fields=['chat','user','message']
+        fields=['user','message','image','video','document','audio_file']
     

@@ -28,7 +28,11 @@ class UserChatRoomsAPIView(APIView):
                     'timestamp': last_message.timestamp
                 }
             else:
-                data['last_message'] = None
+                data['last_message'] = {
+                    'message': 'Say! Hello',
+                    'user_id': '',
+                    'timestamp': ''
+                }
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

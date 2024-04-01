@@ -9,7 +9,6 @@ urlpatterns=[
     path('forget-password/', views.ForgetPassword.as_view(), name='forget-password'),
     path('verify-otp/', views.VerifyOTP.as_view(), name='verify-otp'),
     path('update/', views.update_user, name='update_user'),
-    path('',views.home, name='login'),
     path('google/',views.get_google_user_info, name='google'),
     path('friend_request/send/', views.SendFriendRequestView.as_view(), name='send_friend_request'),
     path('friend-request/receive/', views.ReceiveFriendRequestView.as_view(), name='receive_friend_request'),

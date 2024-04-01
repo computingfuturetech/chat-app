@@ -16,7 +16,6 @@ import os
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
-from allauth.socialaccount.models import SocialAccount
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
@@ -214,12 +213,6 @@ def update_user(request):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     else:
         return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-
-def home(request):
-    return render(request,'login.html')
-
 
 
 @csrf_exempt

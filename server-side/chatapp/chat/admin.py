@@ -8,4 +8,4 @@ class ChatRoomAdmin(admin.ModelAdmin):
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
-    list_display = ['chat', 'user', 'message', 'timestamp', 'datestamp']
+    list_display = ['chat', 'user', 'message', 'audio_file','video','document','image', 'timestamp', 'datestamp']
