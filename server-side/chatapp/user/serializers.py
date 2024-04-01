@@ -10,6 +10,12 @@ class UserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         fields=['username','password','email','first_name','last_name','phone']
 
+    def create(self, validated_data):
+        if 'first_name' not in validated_data:
+            validated_data['first_name'] = validated_data.get('username', '')
+
+        return super().create(validated_data)
+
 class ChangePasswordserializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True, required=True)
     new_password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -48,7 +54,7 @@ class ForgetPasswordSerializer(serializers.Serializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['first_name','last_name','phone','image','bio']
+        fields=['id','first_name','last_name','phone','image','bio']
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
@@ -78,3 +84,8 @@ class UserOnlineStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['is_online']
+
+class UserSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = User
+		fields = ['id', 'image', 'first_name', 'last_name']

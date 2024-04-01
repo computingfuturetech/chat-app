@@ -16,7 +16,6 @@ import os
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
-from allauth.socialaccount.models import SocialAccount
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
@@ -216,12 +215,6 @@ def update_user(request):
         return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-
-def home(request):
-    return render(request,'login.html')
-
-
-
 @csrf_exempt
 def get_google_user_info(request):
     if request.method == 'POST':
@@ -354,6 +347,7 @@ class ListOfUserView(generics.ListAPIView):
             queryset = User.objects.exclude(id__in=friend_ids)
         queryset = queryset.exclude(id__in=requested_user_sent_request_ids)
         queryset = queryset.exclude(id=1)
+        queryset = queryset.exclude(id=requested_user.id)
         return queryset
 
 
