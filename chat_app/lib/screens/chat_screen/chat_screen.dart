@@ -1,19 +1,22 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:chat_app/models/chat_model/chat_model.dart';
 import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/bottom_sheet_modal.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatScreen extends StatefulWidget {
   // ignore: prefer_typing_uninitialized_variables
-  final image, username;
-  const ChatScreen({super.key, this.image, this.username});
+  final image, username, chatRoomId, secondUserId;
+  const ChatScreen(
+      {super.key,
+      this.image,
+      this.username,
+      required this.chatRoomId,
+      this.secondUserId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -27,11 +30,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final authController = Get.find<AuthController>();
   var userId;
   late final WebSocketChannel _channel;
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
   @override
   void initState() {
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://59e2-182-185-217-227.ngrok-free.app/ws/chat/1/3/'),
+      Uri.parse(
+          'ws://2121-182-185-212-155.ngrok-free.app/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
     );
     _localDatabaseService.initDatabase().then((value) => !isDbOpen
         ? setState(() {
@@ -40,45 +45,60 @@ class _ChatScreenState extends State<ChatScreen> {
         : null);
 
     super.initState();
+
     // _channel = WebSocketChannel.connect(
     //   Uri.parse('ws://59e2-182-185-217-227.ngrok-free.app/ws/chat/1/3/'),
     // );
 
     _channel.stream.listen((event) {
       var data = json.decode(event);
+      log('data1122: $data');
       userId = data['user_id'];
-      log('value: $data');
+      log('sender1: $userId');
+      // log('userid1: $userId');
       // log('event: ${event.jsonEncode(event)}');
       // log('event: ${event['message']}');
-      if (data['message'] == null && data['image'] != null) {
-        _localDatabaseService
-            .insertMessage(ChatMessage(
-                content: event.toString(),
-                sender: 'Other',
-                timestamp: DateTime.now()))
-            .then(
-              (value) => setState(
-                () {
-                  // log('value:dsafas');
-                },
-              ),
-            );
-        return;
-      }
-      setState(() {});
-      _localDatabaseService
-          .insertMessage(ChatMessage(
-              // content: data['message'].toString(),
-              content: event.toString(),
-              sender: 'Other',
-              timestamp: DateTime.now()))
-          .then(
-            (value) => setState(
+      if (data['message_type'] == 'text_type') {
+        if (userId.toString() != authController.userid.toString()) {
+          log('user1122: $userId authController.userid: ${authController.userid}');
+          log('user1122 not same');
+          _localDatabaseService
+              .insertMessage(ChatMessage(
+                  content: event.toString(),
+                  sender: 'Other',
+                  timestamp: DateTime.now()))
+              .then((value) {
+            // updateListKey();
+            scrollToBottom();
+            setState(
               () {
+                log('userid1:sd $ChatMessage');
                 // log('value:dsafas');
               },
-            ),
-          );
+            );
+          });
+        } else {
+          log('user1122 same');
+
+          // log('userid12: $userId authController.userid: ${authController.userid}');
+          _localDatabaseService
+              .insertMessage(ChatMessage(
+                  content: event.toString(),
+                  sender: 'Me',
+                  timestamp: DateTime.now()))
+              .then((value) {
+            // updateListKey();
+            scrollToBottom();
+            setState(
+              () {
+                log('userid1:sd $ChatMessage');
+                // log('value:dsafas');
+              },
+            );
+          });
+        }
+        return;
+      }
     });
   }
 
@@ -213,7 +233,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                     }
                     var data = snapshot.data!;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      scrollToBottom();
+                    });
                     return ListView.builder(
+                      key: _listKey,
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       physics: const BouncingScrollPhysics(),
@@ -221,92 +245,73 @@ class _ChatScreenState extends State<ChatScreen> {
                       itemBuilder: (context, index) {
                         final message;
                         final timestamp;
-                        final String sender;
+                        final sender = data[index].sender;
+                        log('sender1: $sender');
                         final image;
                         final decodedData;
-                        data[index].content.contains("\"username\"")
+                        data[index].content.contains("username")
                             ? decodedData = json.decode(data[index].content)
                             : decodedData = data[index].content;
-                        data[index].content.contains("\"timestamp\"")
+                        log('decodedData: $decodedData');
+                        userId = decodedData['user_id'];
+                        log('UserId: $userId and authController.userid: ${authController.userid}');
+                        data[index].content.contains("timestamp")
                             ? timestamp = decodedData['timestamp']
                             : timestamp = data[index].timestamp;
-                        data[index].content.contains("\"message\"")
-                            ? message = decodedData['message']
+                        data[index].content.contains("content")
+                            ? message = decodedData['content']
                             : message = data[index].content;
-                        sender = data[index].sender;
-                        data[index].content.contains("\"image\"")
+                        data[index].content.contains("image")
                             ? image = decodedData['image']
                             : image = data[index].content;
+
+                        // Check if the message is an image
                         if (message == null && image != null) {
-                          log('image: $decodedData');
                           return Column(
                             children: [
                               Container(
                                 margin: const EdgeInsets.only(top: 10),
                                 child: Column(
-                                  crossAxisAlignment:
-                                      userId == authController.userid
-                                          ? CrossAxisAlignment.end
-                                          : CrossAxisAlignment.start,
+                                  crossAxisAlignment: sender == 'Me'
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          userId == authController.userid
-                                              ? MainAxisAlignment.end
-                                              : MainAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 15, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                userId == authController.userid
-                                                    ? primartColor
-                                                    : chatCardColor,
-                                            borderRadius:
-                                                userId == authController.userid
-                                                    ? const BorderRadius.only(
-                                                        topLeft:
-                                                            Radius.circular(10),
-                                                        bottomLeft:
-                                                            Radius.circular(10),
-                                                        bottomRight:
-                                                            Radius.circular(10),
-                                                      )
-                                                    : const BorderRadius.only(
-                                                        topRight:
-                                                            Radius.circular(10),
-                                                        bottomLeft:
-                                                            Radius.circular(10),
-                                                        bottomRight:
-                                                            Radius.circular(10),
-                                                      ),
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: CachedNetworkImage(
-                                              imageUrl: image,
-                                              placeholder: (context, url) =>
-                                                  const Center(
-                                                child:
-                                                    CupertinoActivityIndicator(),
-                                              ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      const Icon(Icons.error),
-                                              height: 150,
-                                              width: 150,
-                                              fit: BoxFit.cover,
+                                    Align(
+                                      alignment: sender == 'Me'
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: sender == 'Me'
+                                              ? primartColor
+                                              : chatCardColor,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: CachedNetworkImage(
+                                            imageUrl: image,
+                                            placeholder: (context, url) =>
+                                                const Center(
+                                              child:
+                                                  CupertinoActivityIndicator(),
                                             ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error),
+                                            height: 150,
+                                            width: 150,
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
                                     const SizedBox(height: 5),
                                     Text(
-                                      // snapshot.data['timestamp'],
-                                      // sender,
                                       timestamp.toString(),
                                       textAlign: TextAlign.end,
                                       style: const TextStyle(
@@ -320,70 +325,44 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             ],
                           );
-                          // return Container();
                         } else {
                           return Column(
                             children: [
                               Container(
                                 margin: const EdgeInsets.only(top: 10),
                                 child: Column(
-                                  crossAxisAlignment:
-                                      userId == authController.userid
-                                          ? CrossAxisAlignment.end
-                                          : CrossAxisAlignment.start,
+                                  crossAxisAlignment: sender == 'Me'
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          userId == authController.userid
-                                              ? MainAxisAlignment.end
-                                              : MainAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 15, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                userId == authController.userid
-                                                    ? primartColor
-                                                    : chatCardColor,
-                                            borderRadius:
-                                                userId == authController.userid
-                                                    ? const BorderRadius.only(
-                                                        topLeft:
-                                                            Radius.circular(10),
-                                                        bottomLeft:
-                                                            Radius.circular(10),
-                                                        bottomRight:
-                                                            Radius.circular(10),
-                                                      )
-                                                    : const BorderRadius.only(
-                                                        topRight:
-                                                            Radius.circular(10),
-                                                        bottomLeft:
-                                                            Radius.circular(10),
-                                                        bottomRight:
-                                                            Radius.circular(10),
-                                                      ),
-                                          ),
-                                          child: Text(
-                                            message,
-                                            // 'has',
-                                            style: TextStyle(
-                                              color: userId ==
-                                                      authController.userid
-                                                  ? whiteColor
-                                                  : primaryFontColor,
-                                              fontSize: 12,
-                                              fontFamily: circularStdBook,
-                                            ),
+                                    Align(
+                                      alignment: sender == 'Me'
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: sender == 'Me'
+                                              ? primartColor
+                                              : chatCardColor,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          message,
+                                          style: TextStyle(
+                                            color: sender == 'Me'
+                                                ? whiteColor
+                                                : primaryFontColor,
+                                            fontSize: 12,
+                                            fontFamily: circularStdBook,
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
                                     const SizedBox(height: 5),
                                     Text(
-                                      // snapshot.data['timestamp'],
-                                      // sender,
                                       timestamp.toString(),
                                       textAlign: TextAlign.end,
                                       style: const TextStyle(
@@ -395,23 +374,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ],
                                 ),
                               ),
-                              // Container(
-                              //   padding: const EdgeInsets.symmetric(
-                              //       horizontal: 10, vertical: 5),
-                              //   decoration: BoxDecoration(
-                              //     color: lightgreyColor,
-                              //     borderRadius: BorderRadius.circular(6),
-                              //   ),
-                              //   child: const Text(
-                              //     'Today',
-                              //     textAlign: TextAlign.end,
-                              //     style: TextStyle(
-                              //       color: primaryFontColor,
-                              //       fontSize: 10,
-                              //       fontFamily: carosMedium,
-                              //     ),
-                              //   ),
-                              // ),
                             ],
                           );
                         }
@@ -419,46 +381,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     );
                   }),
             ),
-            //   child: StreamBuilder(
-            //     stream: _localDatabaseService.getMessages(),
-            //     builder: (context, snapshot) {
-            //       if (snapshot.hasData) {
-            //         log('snapshot: ${snapshot.data}');
-            //         // Parse received JSON data
-            //         var data = snapshot.data!;
-            //         // Check if it's a message
-            //         return ListView.builder(
-            //             itemCount: data.length,
-            //             itemBuilder: (context, index) {
-            //               final message;
-            //               final timestamp;
-            //               final String sender;
-            //               final decodedData;
-            //               data[index].content.contains("\"username\"")
-            //                   ? decodedData = json.decode(data[index].content)
-            //                   : decodedData = data[index].content;
-            //               data[index].content.contains("\"timestamp\"")
-            //                   ? timestamp = decodedData['timestamp']
-            //                   : timestamp = data[index].timestamp;
-            //               data[index].content.contains("\"message\"")
-            //                   ? message = decodedData['message']
-            //                   : message = data[index].content;
-            //               data[index].content.contains("\"sender\"")
-            //                   ? sender = 'Other'
-            //                   : sender = 'Me';
-            //               log('sadhjsad: ${data[index].sender}');
-
-            //               return ListTile(
-            //                 title: Text(message.toString()),
-            //                 subtitle: Text(data[index].sender.toString()),
-            //               );
-            //             });
-            //       }
-            //       // Return an empty container if no data or not a message
-            //       return Container();
-            //     },
-            //   ),
-            // ),
             Container(
               height: 60,
               width: double.infinity,
@@ -538,16 +460,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                   }),
                                 );
                                 // _localDatabaseService.insertMessage(ChatMessage(
-                                //     content: _controller.text,
+                                //     content: _controller.text.toString(),
                                 //     sender: 'Me',
                                 //     timestamp: DateTime.now()));
-                                setState(() {
-                                  _scrollController.animateTo(
-                                    _scrollController.position.maxScrollExtent,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOut,
-                                  );
-                                });
+                                // updateListKey();
+                                scrollToBottom();
 
                                 _controller.clear();
                                 // chatController.sendMessage();
@@ -600,4 +517,20 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
+  // Function to scroll to the bottom
+  void scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  // Function to update the list key and trigger rebuild
+  // void updateListKey() {
+  //   setState(() {
+  //     _listKey.currentState!.insertItem(0);
+  //   });
+  // }
 }

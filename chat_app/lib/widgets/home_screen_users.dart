@@ -7,8 +7,10 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 Widget homeUsers(
   username,
   bio,
+  chatRoomId,
   imageUrl,
   lastMessage,
+  secondUserId,
 ) {
   log('username: $username');
   log('bio: $bio');
@@ -73,6 +75,8 @@ Widget homeUsers(
                 () => ChatScreen(
                   username: username,
                   image: imageUrl ?? 'https://via.placeholder.com/150',
+                  chatRoomId: chatRoomId,
+                  secondUserId: secondUserId,
                 ),
                 transition: Transition.rightToLeft,
               );

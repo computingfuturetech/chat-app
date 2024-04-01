@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:chat_app/models/chat_room/chat_room.dart';
 import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/models/user_model/user_model.dart';
+import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/services/database_services.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:http/http.dart' as http;
@@ -9,13 +10,18 @@ import 'package:http/http.dart' as http;
 class UserController extends GetxController {
   final users = <User>[].obs;
 
-  final baseUrl = 'https://59e2-182-185-217-227.ngrok-free.app/user';
+  final baseUrl = 'https://2121-182-185-212-155.ngrok-free.app/user';
   final token = ''.obs;
   final isHomeSearch = false.obs;
   final contactSearchController = TextEditingController();
   final requestSearchController = TextEditingController();
   final isContactSearch = false.obs;
   final _localDatabaseService = LocalDatabaseService();
+  final isWriting = false.obs;
+
+  void setIsWriting(bool value) {
+    isWriting.value = value;
+  }
 
   // final List<Chatroom> sampleChatRooms = [
   //   Chatroom(
@@ -166,14 +172,47 @@ class UserController extends GetxController {
     try {
       await _localDatabaseService.ensureInitialized();
 
-      // log('Fetching chat rooms data from local database...');
-      // final stream = _localDatabaseService.fetchChatRoomsData();
-      // log('Stream: $stream');
-      // await for (final chatRooms in stream) {
-      //   log('Received chat rooms from local database: $chatRooms');
-      //   yield chatRooms;
-      // }
+      // Fetch data from local database
+      final localData = await _localDatabaseService.fetchChatRoomsData().first;
 
+      yield localData;
+
+      // Fetch data from API in the background
+      _fetchDataFromApiInBackground();
+    } catch (e) {
+      throw 'Error fetching chat rooms data: $e';
+    }
+  }
+
+  // Future<void> _fetchDataFromApiInBackground() async {
+  //   try {
+  //     final bool isConnected = await checkInternetConnectivity();
+
+  //     if (isConnected) {
+  //       final header = {
+  //         'Authorization': 'JWT ${token.value}',
+  //       };
+  //       final url = Uri.parse(
+  //           'https://59e2-182-185-217-227.ngrok-free.app/chat/chatrooms/');
+
+  //       final response =
+  //           await http.get(url, headers: header).then((value) async {
+  //         log('Response: ${value.body}');
+
+  //         if (value.statusCode == 200) {
+  //           final List<Chatroom> chatRooms = chatroomFromJson(value.body);
+  //           await _localDatabaseService.updateChatRooms(chatRooms);
+  //         } else {
+  //           throw 'Failed to load data from API';
+  //         }
+  //       });
+  //     }
+  //   } catch (e) {
+  //     log('Error fetching data from API: $e');
+  //   }
+  // }
+  Future<void> _fetchDataFromApiInBackground() async {
+    try {
       final bool isConnected = await checkInternetConnectivity();
 
       if (isConnected) {
@@ -181,32 +220,26 @@ class UserController extends GetxController {
           'Authorization': 'JWT ${token.value}',
         };
         final url = Uri.parse(
-            'https://59e2-182-185-217-227.ngrok-free.app/chat/chatrooms/');
+            'https://2121-182-185-212-155.ngrok-free.app/chat/chatrooms/');
 
         final response = await http.get(url, headers: header);
+
         log('Response: ${response.body}');
 
         if (response.statusCode == 200) {
-          final List<Chatroom> chatRooms = chatroomFromJson(response.body);
-          // log('Chatrooms data: ${chatRooms[0].membersInfo![0].firstName}');
-          // await _localDatabaseService.updateChatRooms(chatRooms);
-          yield chatRooms;
+          final responseBody = response.body;
+          if (responseBody.isNotEmpty) {
+            final List<Chatroom> chatRooms = chatroomFromJson(responseBody);
+            await _localDatabaseService.updateChatRooms(chatRooms);
+          } else {
+            throw 'Response body is empty';
+          }
         } else {
           throw 'Failed to load data from API';
         }
-      } else {
-        // Fetch data from local database
-        // Fetch data from local database
-        // log('Fetching chat rooms data from local database...');
-        // final stream = _localDatabaseService.fetchChatRoomsData();
-        // log('Stream: $stream');
-        // await for (final chatRooms in stream) {
-        //   log('Received chat rooms from local database: $chatRooms');
-        //   yield chatRooms;
-        // }
       }
     } catch (e) {
-      throw 'Error fetching chat rooms data: $e';
+      log('Error fetching data from API: $e');
     }
   }
 

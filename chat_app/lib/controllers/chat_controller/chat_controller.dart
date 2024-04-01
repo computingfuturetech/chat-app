@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:chat_app/models/chat_model/chat_model.dart';
+import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatController extends GetxController {
   //variables for image picker
@@ -14,8 +17,19 @@ class ChatController extends GetxController {
   var token = ''.obs;
   final messageController = TextEditingController();
   final isWriting = false.obs;
+  final localDatabaseService = MessageDatabaseService();
+  late WebSocketChannel channel;
+  bool isDbOpen = false;
+  final isDatabaseInitialized = false.obs;
 
-  final baseUrl = 'https://59e2-182-185-217-227.ngrok-free.app/chat';
+  ChatController() {
+    checkCameraPermission();
+    checkStoragePermission();
+    checkMicrophonePermission();
+    localDatabaseService.initDatabase();
+  }
+
+  final baseUrl = 'https://2121-182-185-212-155.ngrok-free.app/chat';
 
   checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -135,12 +149,6 @@ class ChatController extends GetxController {
     }
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    getToken();
-  }
-
   getToken() async {
     SharedPreferences.getInstance().then((prefs) {
       // final bool? isOnboardingDone = prefs.getBool('isOnboardingDone');
@@ -148,26 +156,74 @@ class ChatController extends GetxController {
     });
   }
 
-  sendMessage() async {
-    try {
-      final header = {
-        'Authorization': 'JWT ${token.value}',
-      };
-      final url = Uri.parse('$baseUrl/send_message/');
-      final body = {
-        'message': messageController.text,
-      };
-      final response = await http.post(url, headers: header, body: body);
+  void init(String chatRoomId, String userId) {
+    getToken();
+    log('chatRoomId: $chatRoomId, userId: $userId');
 
-      log(response.body);
-      if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Message sent');
-        messageController.clear();
-      } else {
-        throw 'Failed to load data';
+    channel = WebSocketChannel.connect(
+      Uri.parse(
+          'ws://2121-182-185-212-155.ngrok-free.app/ws/chat/$chatRoomId/$userId/'),
+    );
+    update();
+    localDatabaseService
+        .initDatabase()
+        .then((value) => !isDbOpen ? isDbOpen = true : null)
+        .then((_) {
+      // Ensure UI update after database initialization
+      update();
+    });
+
+    channel.stream.listen((event) {
+      var data = json.decode(event);
+      userId = data['user_id'];
+      log('value: $data');
+
+      if (data['message'] == null && data['image'] != null) {
+        localDatabaseService
+            .insertMessage(ChatMessage(
+                content: event.toString(),
+                sender: 'Other',
+                timestamp: DateTime.now()))
+            .then((_) {
+          // Ensure UI update after inserting new message
+          update();
+        });
+        return;
       }
-    } catch (e) {
-      throw 'Error: $e';
+
+      localDatabaseService
+          .insertMessage(ChatMessage(
+              content: event.toString(),
+              sender: 'Other',
+              timestamp: DateTime.now()))
+          .then((_) {
+        // Ensure UI update after inserting new message
+        update();
+      });
+    });
+  }
+
+  void sendMessage(String message) {
+    if (message.isNotEmpty) {
+      channel.sink.add(
+        jsonEncode({
+          'type': 'text_type',
+          'username': 'username', // Set your username here
+          'message': message,
+        }),
+      );
+
+      localDatabaseService.insertMessage(ChatMessage(
+          content: message, sender: 'Me', timestamp: DateTime.now()));
+
+      messageController.clear();
     }
+  }
+
+  @override
+  void onClose() {
+    messageController.dispose();
+    channel.sink.close();
+    super.onClose();
   }
 }

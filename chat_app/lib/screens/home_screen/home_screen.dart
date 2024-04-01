@@ -20,7 +20,8 @@ class HomeScreen extends StatelessWidget {
         preferredSize: const Size.fromHeight(60),
         child: customAppBar(
           title: 'Home',
-          imageUrl: authController.image.value,
+          imageUrl:
+              authController.image.value ?? 'https://via.placeholder.com/150',
           isIcon: false,
           searchOnPressed: () {
             Get.to(
@@ -86,10 +87,12 @@ class HomeScreen extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final chatRoom = chatRooms![index];
                           return homeUsers(
-                            '${chatRoom.membersInfo?[0].firstName} ${chatRoom.membersInfo![0].lastName}',
-                            chatRoom.membersInfo?[0].bio,
-                            'https://59e2-182-185-217-227.ngrok-free.app${chatRoom.membersInfo?[0].image}',
-                            chatRoom.lastMessage?.message ?? '',
+                            '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
+                            chatRoom.membersInfo[0].bio,
+                            chatRoom.id.toString(),
+                            'https://59e2-182-185-217-227.ngrok-free.app${chatRoom.membersInfo[0].image}',
+                            chatRoom.lastMessage!.message ?? '',
+                            chatRoom.membersInfo.first.id.toString(),
                           );
                         },
                       );
