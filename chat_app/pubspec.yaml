@@ -26,6 +26,14 @@ dependencies:
   sqflite: ^2.3.2
   path: ^1.9.0
   connectivity_plus: ^6.0.1
+  record: ^5.0.5
+  audioplayers: ^6.0.0
+  device_info_plus: ^10.0.1
+  path_provider: ^2.1.2
+  voice_message_package: ^2.1.4
+  just_audio: ^0.9.37
+  full_screen_image: ^2.0.0
+  flutter_file_downloader: ^1.2.1
 
 dev_dependencies:
   flutter_test:

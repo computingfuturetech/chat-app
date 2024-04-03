@@ -179,6 +179,7 @@ class UserController extends GetxController {
 
       // Fetch data from API in the background
       _fetchDataFromApiInBackground();
+      update();
     } catch (e) {
       throw 'Error fetching chat rooms data: $e';
     }

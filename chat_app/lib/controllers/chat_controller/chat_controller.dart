@@ -25,7 +25,7 @@ class ChatController extends GetxController {
   ChatController() {
     checkCameraPermission();
     checkStoragePermission();
-    checkMicrophonePermission();
+    // checkMicrophonePermission();
     localDatabaseService.initDatabase();
   }
 
@@ -47,12 +47,13 @@ class ChatController extends GetxController {
 
   checkMicrophonePermission() async {
     var status = await Permission.microphone.status;
+
     if (status.isDenied) {
       await Permission.microphone.request();
     }
   }
 
-  pickImage(context, source, channel) async {
+  pickImage(context, source, channel, username) async {
     // Request permissions
 
     // await Permission.photos.request();
@@ -77,7 +78,7 @@ class ChatController extends GetxController {
         }
 
         imgpath.value = img.path;
-        sendImage(channel, img.path);
+        sendImage(channel, img.path, username);
         // VxToast.show(context, msg: "Image selected");
         Get.snackbar('', 'Image Selected');
       } on PlatformException catch (e) {
@@ -93,7 +94,7 @@ class ChatController extends GetxController {
     }
   }
 
-  sendImage(channel, imagePath) async {
+  sendImage(channel, imagePath, username) async {
     try {
       // Read the image file as bytes
       final file = File(imagePath);
@@ -103,7 +104,9 @@ class ChatController extends GetxController {
       final imageBytes = Uint8List.fromList(bytes);
 
       // Send the image as a binary message
-      channel.sink.add(jsonEncode({'type': 'image_type', 'image': bytes}));
+      channel.sink.add(jsonEncode(
+          {'type': 'image_type', 'username': username, 'message': bytes}));
+      // channel.sink.add(jsonEncode({'type': 'image_type', 'image': 'bytes'}));
     } catch (e) {
       log('Error sending image: $e');
     }
@@ -121,6 +124,12 @@ class ChatController extends GetxController {
       type: FileType.media,
     );
     if (result != null) {
+      File file = File(result.files.single.path!);
+
+      final bytes = await file.readAsBytes();
+
+      channel.sink.add(jsonEncode(
+          {'type': 'media_type', 'username': 'username', 'message': bytes}));
       imgpath.value = result.files.single.path!;
       imglink.value = '';
       Get.snackbar('', 'Image Selected');
@@ -129,7 +138,7 @@ class ChatController extends GetxController {
     }
   }
 
-  documentPicker(context) async {
+  documentPicker(context, channel, username) async {
     var status = await Permission.storage.request();
     if (status.isDenied) {
       log('inside file picker');
@@ -142,6 +151,13 @@ class ChatController extends GetxController {
     );
     if (result != null) {
       imgpath.value = result.files.single.path!;
+      File file = File(result.files.single.path!);
+      final bytes = await file.readAsBytes();
+
+      // log('bytes: $bytes');
+
+      channel.sink.add(jsonEncode(
+          {'type': 'document_type', 'username': username, 'message': bytes}));
       imglink.value = '';
       Get.snackbar('', 'Document Selected');
     } else {
