@@ -22,14 +22,33 @@ class UserChatRoomsAPIView(APIView):
             chat_room = get_object_or_404(ChatRoom, chat_room_id=chat_room_id)
             last_message = chat_room.chatmessage_set.last() 
             if last_message:
-                data['last_message'] = {
-                    'message': last_message.message,
-                    'user_id': last_message.user_id,
-                    'timestamp': last_message.timestamp
-                }
+                if last_message.image:
+                    data['last_message'] = {
+                        'message': 'Image',
+                        'user_id': last_message.user_id,
+                        'timestamp': last_message.timestamp
+                    }
+                elif last_message.audio_file:
+                    data['last_message'] = {
+                        'message': 'Audio_file',
+                        'user_id': last_message.user_id,
+                        'timestamp': last_message.timestamp
+                    }
+                elif last_message.document:
+                    data['last_message'] = {
+                        'message': 'document',
+                        'user_id': last_message.user_id,
+                        'timestamp': last_message.timestamp
+                    }
+                else:
+                    data['last_message'] = {
+                        'message': last_message.message,
+                        'user_id': last_message.user_id,
+                        'timestamp': last_message.timestamp
+                    }
             else:
                 data['last_message'] = {
-                    'message': 'Say! Hello',
+                    'message': 'Say Hello!',
                     'user_id': '',
                     'timestamp': ''
                 }
