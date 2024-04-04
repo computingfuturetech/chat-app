@@ -26,7 +26,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'https://2121-182-185-212-155.ngrok-free.app/user';
+  final baseURL = 'https://52b6-182-185-212-155.ngrok-free.app/user';
 
   signup() async {
     try {
