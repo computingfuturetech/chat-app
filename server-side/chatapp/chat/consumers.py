@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .models import ChatRoom, ChatMessage
+from user.models import User,FriendRequest
 from django.contrib.auth import get_user_model
 from asgiref.sync import sync_to_async
 from django.utils import timezone
@@ -8,38 +9,6 @@ from django.core.files.base import ContentFile
 from PIL import Image
 import io
 import base64
-
-# def detect_document_type(document_data):
-#     if isinstance(document_data, list):
-#         document_data = bytes(document_data)  # Convert list to bytes
-
-#     magic_bytes = {
-#         b'%PDF-': 'PDF',
-#         b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1': 'PPT',
-#         b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1': 'DOC',
-#         b'\xFF\xFB': 'MP3',
-#         b'\x50\x4B\x03\x04': 'ZIP',  # Adjust this for Word documents
-#         b'\x52\x49\x46\x46': 'WAV',  # RIFF header
-#         b'\x1A\x45\xDF\xA3': 'MKV',
-#         b'\x6D\x6F\x6F\x76': 'MOV',
-#         b'\x46\x4C\x56\x01': 'FLV',
-#         b'\x4F\x67\x67\x53': 'OGG',
-#         b'\xEF\xBB\xBF': 'TXT',  # UTF-8 encoded
-#         b'\x7B\x22\x74\x65\x73\x74\x22\x3A': 'JSON',
-#         b'\x3C\x3F\x78\x6D\x6C\x20': 'XML',
-#         b'\x3C\x21\x44\x4F\x43\x54\x59': 'HTML',
-#         b'\x3C\x3F\x78\x6D\x6C\x20': 'SVG',
-#         b'\x22\x22\x22': 'CSV',  # CSV with quotes
-#         b'\x50\x4B\x03\x04\x14\x00\x06\x00': 'PPTX',
-#         # Add more magic bytes for other document types
-#     }
-
-#     for magic, doc_type in magic_bytes.items():
-#         if magic in document_data:
-#             return doc_type
-
-#     return 'Unknown'  # If the document type cannot be determined
-
 import magic
 
 def detect_document_type(document_data):
@@ -154,6 +123,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_text_message(self, data, username, chat_room):
         message = data.get('message')
+        print(message)
         user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
         chat_message = await sync_to_async(ChatMessage.objects.create)(
             chat=chat_room,
@@ -165,6 +135,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_image_message(self, data, username, chat_room):
         image_data = data.get('message')
+        print(image_data)
         if image_data:
             image_bytes = bytes(image_data)
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
@@ -182,6 +153,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def handle_audio_message(self, data, username, chat_room):
         try:
             audio_data = data.get('message')
+            print(audio_data)
             if audio_data:
                 audio_bytes = bytes(audio_data)
                 audio_format = "wav"  
@@ -203,6 +175,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_document_message(self, data, username, chat_room):
         document_data = data.get('message')
+        print(document_data)
         if document_data:
             document_type = detect_document_type(document_data)
             print(document_type)
@@ -255,9 +228,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"Error sending message: {e}")
 
 
+from channels.db import database_sync_to_async
+
+
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        await self.accept()
+        self.to_user_id = self.scope['url_route']['kwargs']['toUser']
+        self.from_user_id = self.scope['url_route']['kwargs']['fromUser']
+
+        to_user = await database_sync_to_async(User.objects.get)(id=self.to_user_id)
+        from_user = await database_sync_to_async(User.objects.get)(id=self.from_user_id)
+
+        if to_user and from_user:
+            self.room_group_name = f"online_{self.to_user_id}"  # Use a more specific room name
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
+        else:
+            await self.close()
 
     async def disconnect(self, close_code):
         pass
@@ -265,14 +255,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             text_data_json = json.loads(text_data)
+            print(text_data_json)
             notification_type = text_data_json.get('type')
             message = text_data_json.get('message')
 
             if notification_type and message:
+                from_user = await database_sync_to_async(User.objects.get)(id=self.from_user_id)
+                from_username = from_user.username if from_user else "Unknown"
                 await self.send(text_data=json.dumps({
                     'notification_type': notification_type,
-                    'message': message,
+                    'message': f"{from_username}{message}", 
                 }))
+                await self.send_friend_request(message, 'friend_request_type')  
             else:
                 await self.send(text_data=json.dumps({
                     'error': 'Invalid notification data'
@@ -281,3 +275,39 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 'error': 'Invalid JSON format'
             }))
+
+    async def send_friend_request(self, message, message_type):
+        try:
+            # Extract recipient user ID from message or context
+            recipient_user_id = self.from_user_id
+            if recipient_user_id:
+                print('ok')
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'message_type': message_type,
+                        'recipient_user_id': recipient_user_id,  # Include recipient user ID
+                    }
+                )
+        except Exception as e:
+            print(f"Error sending friend request: {e}")
+
+    async def chat_message(self, event):
+        try:
+            message = event['message']
+            message_type = event['message_type']
+            recipient_user_id = event.get('recipient_user_id')
+            recipient_user = await database_sync_to_async(User.objects.get)(id=recipient_user_id)
+            if message_type == 'friend_request_type':
+                print('send')
+                await self.send(text_data=json.dumps({
+                    'notification_type': 'Friend Request',
+                    'message': f"You received a friend request from {recipient_user.username}",
+                }))
+            else:
+                pass  
+        except Exception as e:
+            print(f"Error handling chat message: {e}")
+
