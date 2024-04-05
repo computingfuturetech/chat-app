@@ -7,13 +7,15 @@ import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/bottom_sheet_modal.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_file_downloader/flutter_file_downloader.dart';
-import 'package:full_screen_image/full_screen_image.dart';
 import 'package:voice_message_package/voice_message_package.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:record/record.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ChatScreen extends StatefulWidget {
   // ignore: prefer_typing_uninitialized_variables
@@ -50,7 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
     log('isRecording: $isRecording');
     _channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://2121-182-185-212-155.ngrok-free.app/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
+          'ws://52b6-182-185-212-155.ngrok-free.app/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
     );
     _localDatabaseService.initDatabase().then((value) => !isDbOpen
         ? setState(() {
@@ -65,11 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
       var data = json.decode(event);
       log('data1122: $data');
       userId = data['user_id'];
-      // data['message_type'] == 'image_type' ? isImage = true : isImage = false;
       log('sender1: $userId');
-      // log('userid1: $userId');
-      // log('event: ${event.jsonEncode(event)}');
-      // log('event: ${event['message']}');
       if (userId.toString() != authController.userid.toString()) {
         log('user1122: $userId authController.userid: ${authController.userid}');
         log('user1122 not same');
@@ -84,26 +82,21 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(
             () {
               log('userid1:sd $ChatMessage');
-              // log('value:dsafas');
             },
           );
         });
       } else {
         log('user1122 same');
-
-        // log('userid12: $userId authController.userid: ${authController.userid}');
         _localDatabaseService
             .insertMessage(ChatMessage(
                 content: event.toString(),
                 sender: 'Me',
                 timestamp: DateTime.now()))
             .then((value) {
-          // updateListKey();
           scrollToBottom();
           setState(
             () {
               log('userid1:sd $ChatMessage');
-              // log('value:dsafas');
             },
           );
         });
@@ -143,8 +136,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<bool> _checkPermission() async {
-    final plugin = DeviceInfoPlugin();
-    final android = await plugin.androidInfo;
     var micPermission = await Permission.microphone.request();
     final storagePermission = await Permission.storage.request();
 
@@ -191,6 +182,188 @@ class _ChatScreenState extends State<ChatScreen> {
       log('Error uploading audio: $e');
     }
   }
+
+  void openDocument(BuildContext context, String message) async {
+    try {
+      final directory = await getDownloadsDirectory();
+      log('directory: $directory');
+
+      final fileExtension =
+          message.split('.').last; // Extract file extension from message
+      final fileName =
+          message.split('/').last; // Extract file name from message
+
+      final filePath = Platform.isAndroid
+          ? '/storage/emulated/0/Download/$fileName'
+          : '${directory!.path}/$fileName'; // Construct file path with file name
+      log('fileExtension: $fileExtension');
+      log('filePath: $filePath');
+
+      // Check if the file exists in the temporary directory
+      if (await File(filePath).exists()) {
+        // File exists, so open it directly
+        log('File exists, so opening directly');
+        OpenFile.open(filePath).then((value) {
+          if (value.message == 'done') {
+            Fluttertoast.showToast(
+                msg: 'File opened successfully',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                fontSize: 16.0);
+          } else {
+            Fluttertoast.showToast(
+                msg: 'No app found to open the file',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                fontSize: 16.0);
+          }
+        }).catchError((e) {
+          print('Error opening file: $e');
+          Fluttertoast.showToast(
+              msg: 'Error opening file: $e',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        });
+      } else {
+        // File doesn't exist, so download it
+        final downloadedFile = await FileDownloader.downloadFile(
+          url: "https://52b6-182-185-212-155.ngrok-free.app$message",
+          name: fileName, // Specify the file name to save as
+          downloadDestination: DownloadDestinations.publicDownloads,
+          onDownloadCompleted: (String downloadedFilePath) {
+            log('File downloaded successfully at $downloadedFilePath');
+            Fluttertoast.showToast(
+                msg: 'File downloaded successfully at $downloadedFilePath',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                fontSize: 16.0);
+          },
+          onDownloadError: (String error) {
+            Fluttertoast.showToast(
+                msg: 'Download error: $error',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0);
+          },
+        );
+
+        // Open the downloaded file using open_file package
+        OpenFile.open(downloadedFile!.path).then((value) {
+          if (value.message == 'done') {
+            Fluttertoast.showToast(
+                msg: 'File opened successfully',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                fontSize: 16.0);
+          } else {
+            Fluttertoast.showToast(
+                msg: 'No app found to open the file',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                fontSize: 16.0);
+          }
+        }).catchError((e) {
+          print('Error opening file: $e');
+          Fluttertoast.showToast(
+              msg: 'Error opening file: $e',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        });
+      }
+    } catch (e) {
+      print('Error opening document: $e');
+      Fluttertoast.showToast(
+          msg: 'Error opening document: $e',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  // void openDocument(BuildContext context, message) async {
+  //   try {
+  //     // Get temporary directory to save the downloaded file
+  //     final directory = await getTemporaryDirectory();
+  //     final path = directory.path;
+
+  //     // Download the file using your FileDownloader class
+  //     FileDownloader.downloadFile(
+  //       url: "https://2121-182-185-212-155.ngrok-free.app$message",
+  //       onDownloadCompleted: (String filePath) async {
+  //         Fluttertoast.showToast(
+  //             msg: 'File downloaded successfully at $filePath',
+  //             toastLength: Toast.LENGTH_SHORT,
+  //             gravity: ToastGravity.BOTTOM,
+  //             timeInSecForIosWeb: 1,
+  //             fontSize: 16.0);
+
+  //         // Open the downloaded file using open_file package
+
+  //         await Permission.storage.request();
+  //         await Permission.manageExternalStorage.request();
+
+  //         OpenFile.open(filePath).then((value) {
+  //           if (value.message == 'done') {
+  //             Fluttertoast.showToast(
+  //                 msg: 'File opened successfully',
+  //                 toastLength: Toast.LENGTH_SHORT,
+  //                 gravity: ToastGravity.BOTTOM,
+  //                 timeInSecForIosWeb: 1,
+  //                 fontSize: 16.0);
+  //           } else {
+  //             Fluttertoast.showToast(
+  //                 msg: 'No app found to open the file',
+  //                 toastLength: Toast.LENGTH_SHORT,
+  //                 gravity: ToastGravity.BOTTOM,
+  //                 timeInSecForIosWeb: 1,
+  //                 fontSize: 16.0);
+  //           }
+  //         }).catchError((e) {
+  //           log('Error opening file: $e');
+  //         });
+  //       },
+  //       onDownloadError: (String error) {
+  //         Fluttertoast.showToast(
+  //             msg: 'Download error: $error',
+  //             toastLength: Toast.LENGTH_SHORT,
+  //             gravity: ToastGravity.BOTTOM,
+  //             timeInSecForIosWeb: 1,
+  //             backgroundColor: Colors.red,
+  //             textColor: Colors.white,
+  //             fontSize: 16.0);
+  //       },
+  //     );
+  //   } catch (e) {
+  //     print('Error opening document: $e');
+  //     Fluttertoast.showToast(
+  //         msg: 'Error opening document',
+  //         toastLength: Toast.LENGTH_SHORT,
+  //         gravity: ToastGravity.BOTTOM,
+  //         timeInSecForIosWeb: 1,
+  //         backgroundColor: Colors.red,
+  //         textColor: Colors.white,
+  //         fontSize: 16.0);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +524,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             Get.to(
                               () => ImagePreview(
                                 image:
-                                    'https://2121-182-185-212-155.ngrok-free.app$message',
+                                    'https://52b6-182-185-212-155.ngrok-free.app$message',
                               ),
                             );
                           },
@@ -377,7 +550,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         borderRadius: BorderRadius.circular(10),
                                         child: CachedNetworkImage(
                                           imageUrl:
-                                              'https://2121-182-185-212-155.ngrok-free.app$message',
+                                              'https://52b6-182-185-212-155.ngrok-free.app$message',
                                           placeholder: (context, url) =>
                                               const Center(
                                             child: CupertinoActivityIndicator(),
@@ -451,17 +624,18 @@ class _ChatScreenState extends State<ChatScreen> {
                               onPressed: () {
                                 //open document
                                 //You can download a single file
-                                FileDownloader.downloadFile(
-                                    url:
-                                        "https://2121-182-185-212-155.ngrok-free.app$message",
-                                    onDownloadCompleted: (String path) {
-                                      Get.snackbar('Success',
-                                          'FILE DOWNLOADED TO PATH: $path');
-                                    },
-                                    onDownloadError: (String error) {
-                                      Get.snackbar(
-                                          'Error', 'DOWNLOAD ERROR: $error');
-                                    });
+                                // FileDownloader.downloadFile(
+                                //     url:
+                                //         "https://2121-182-185-212-155.ngrok-free.app$message",
+                                //     onDownloadCompleted: (String path) {
+                                //       Get.snackbar('Success',
+                                //           'FILE DOWNLOADED TO PATH: $path');
+                                //     },
+                                //     onDownloadError: (String error) {
+                                //       Get.snackbar(
+                                //           'Error', 'DOWNLOAD ERROR: $error');
+                                //     });
+                                openDocument(context, message);
                               },
                               child: const Text(
                                 'Document',
@@ -647,21 +821,28 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: primaryFontColor,
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 15),
                             InkWell(
                               onTap: () {
                                 log('isRecording: $isRecording');
-                                isRecording
-                                    ? stopRecording()
-                                    : startRecording();
+                                //vibrate
+                                HapticFeedback.vibrate();
+                                setState(() {
+                                  isRecording
+                                      ? stopRecording()
+                                      : startRecording();
+                                });
                               },
                               child: Icon(
                                 CupertinoIcons.mic,
                                 color: isRecording
                                     ? secondaryColor
                                     : primaryFontColor,
+                                size: isRecording ? 35 : 25,
+                                // fill: isRecording ? 10.0 : 0.0,
                               ),
-                            )
+                            ),
+                            const SizedBox(width: 10),
                           ],
                         ),
                 ),

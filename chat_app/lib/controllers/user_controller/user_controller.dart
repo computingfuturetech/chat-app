@@ -1,16 +1,20 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:chat_app/models/chat_room/chat_room.dart';
 import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/models/user_model/user_model.dart';
-import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/services/database_services.dart';
 import 'package:chat_app/utils/exports.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class UserController extends GetxController {
+  final authController = Get.find<AuthController>();
   final users = <User>[].obs;
 
-  final baseUrl = 'https://2121-182-185-212-155.ngrok-free.app/user';
+  final baseUrl = 'https://52b6-182-185-212-155.ngrok-free.app/user';
   final token = ''.obs;
   final isHomeSearch = false.obs;
   final contactSearchController = TextEditingController();
@@ -18,6 +22,9 @@ class UserController extends GetxController {
   final isContactSearch = false.obs;
   final _localDatabaseService = LocalDatabaseService();
   final isWriting = false.obs;
+
+  final toId = ''.obs;
+  final fromId = ''.obs;
 
   void setIsWriting(bool value) {
     isWriting.value = value;
@@ -221,7 +228,7 @@ class UserController extends GetxController {
           'Authorization': 'JWT ${token.value}',
         };
         final url = Uri.parse(
-            'https://2121-182-185-212-155.ngrok-free.app/chat/chatrooms/');
+            'https://52b6-182-185-212-155.ngrok-free.app/chat/chatrooms/');
 
         final response = await http.get(url, headers: header);
 
@@ -250,6 +257,140 @@ class UserController extends GetxController {
     getToken();
   }
 
+  // Future<void> sendFriendRequestNotification() async {
+  //   try {
+  //     final WebSocketChannel channel = WebSocketChannel.connect(
+  //       Uri.parse(
+  //           'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/3/2/'),
+  //     );
+  //     log('WebSocket channel created: $channel');
+  //     channel.sink.add(jsonEncode(
+  //         {'type': 'friend_request_type', 'message': 'Send friend request'}));
+  //     log('Message sent via WebSocket');
+
+  //     // Handle WebSocket events
+  //     channel.stream.listen((message) {
+  //       // Handle incoming messages
+  //       log('WebSocket message received: $message');
+
+  //       // Call the `FlutterBackgroundService().invoke('setAsForeground')` method to show a notification.
+  //       FlutterBackgroundService().invoke('setAsForeground');
+
+  //       // _showNotificationWithDefaultSound(message.toString());
+  //     }, onError: (error) {
+  //       // Handle WebSocket errors
+  //       log('WebSocket error: $error');
+  //     }, onDone: () {
+  //       // Handle WebSocket close
+  //       log('WebSocket closed');
+  //     });
+  //   } catch (e) {
+  //     log('Error in WebSocket communication: $e');
+  //     throw 'Error: $e';
+  //   }
+  // }
+  Future<void> sendFriendRequestNotification() async {
+    try {
+      final WebSocketChannel channel = WebSocketChannel.connect(
+        Uri.parse(
+            'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/2/5/'),
+        // 'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/${toId.value}/${fromId.value}/'),
+      );
+      channel.stream.listen((event) {
+        // Retrieve the message from the WebSocket channel
+        log('WebSocket message: $event');
+        final decodedMessage = jsonDecode(event);
+        final msg = decodedMessage['message'] ?? '';
+        // final String receivedMessage = message['message'] ?? '';
+        // log('Received message: $receivedMessage');
+
+        // Show a notification with the received message
+        _showNotificationWithDefaultSound(msg);
+      }, onError: (error) {
+        // Handle WebSocket errors
+        log('WebSocket error: $error');
+      }, onDone: () {
+        // Handle WebSocket close
+        log('WebSocket closed');
+      });
+      log('WebSocket channel created: $channel');
+      channel.sink.add(jsonEncode({
+        'type': 'friend_request_type',
+        'message': 'Send friend request', // Pass the message parameter here,
+      }));
+      log('Message sent via WebSocket');
+
+      // Handle WebSocket events
+      // channel.stream.listen((message) {
+      //   // Handle incoming messages
+      //   log('WebSocket message received: $message');
+
+      //   // Call the `FlutterBackgroundService().invoke('setAsForeground')` method to show a notification.
+      // FlutterBackgroundService().invoke('setAsForeground');
+      // FlutterBackgroundService().invoke('setAsForeground', {'fromId': fromId.value, 'toId': toId.value});
+      // FlutterBackgroundService().invoke('setAsForeground', {
+      //   'data': {
+      //     'fromId': fromId.value,
+      //     'toId': toId.value,
+      //     'authId': authController.userid.toString()
+      //   }
+      // });
+
+      //   // _showNotificationWithDefaultSound(message.toString());
+      // }, onError: (error) {
+      //   // Handle WebSocket errors
+      //   log('WebSocket error: $error');
+      // }, onDone: () {
+      //   // Handle WebSocket close
+      //   log('WebSocket closed');
+      // });
+    } catch (e) {
+      log('Error in WebSocket communication: $e');
+      throw 'Error: $e';
+    }
+  }
+
+  Future _showNotificationWithDefaultSound(String message) async {
+    // Initialise the plugin of flutterlocalnotifications.
+    FlutterLocalNotificationsPlugin flip = FlutterLocalNotificationsPlugin();
+
+    // App_icon needs to be added as a drawable resource to the Android head project.
+    var android = const AndroidInitializationSettings('@mipmap/ic_launcher');
+    var iOS = const DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true);
+
+    // Initialise settings for both Android and iOS device.
+    var settings = InitializationSettings(android: android, iOS: iOS);
+    flip.initialize(settings);
+
+    // Show a notification with the received message
+    var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+      'your channel id',
+      'your channel name',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    var iOSPlatformChannelSpecifics = const DarwinNotificationDetails(
+      sound: 'default',
+      subtitle: 'subtitle',
+    );
+
+    // Initialise channel platform for both Android and iOS device.
+    var platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+    await flip.show(
+      0,
+      'Notification',
+      message,
+      platformChannelSpecifics,
+      payload: 'Default_Sound',
+    );
+  }
+
   sendFriendRequest(int id) async {
     try {
       final header = {
@@ -257,15 +398,23 @@ class UserController extends GetxController {
       };
       final url = Uri.parse('$baseUrl/friend_request/send/');
       final body = {'to_user': '$id'};
+      toId.value = id.toString();
+      fromId.value = authController.userid.toString();
+      log('toId: $toId');
+      log('fromId: $fromId');
       final response = await http.post(url, headers: header, body: body);
 
+      await sendFriendRequestNotification();
       log(response.body);
       if (response.statusCode == 200) {
+        log('Friend request sent successfully');
         Get.snackbar('Success', 'Friend request sent');
       } else {
+        log('Failed to send friend request');
         throw 'Failed to load data';
       }
     } catch (e) {
+      log('Error in sending friend request: $e');
       throw 'Error: $e';
     }
   }

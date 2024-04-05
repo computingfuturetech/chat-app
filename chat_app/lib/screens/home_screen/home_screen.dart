@@ -90,7 +90,7 @@ class HomeScreen extends StatelessWidget {
                             '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
                             chatRoom.membersInfo[0].bio,
                             chatRoom.id.toString(),
-                            'https://59e2-182-185-217-227.ngrok-free.app${chatRoom.membersInfo[0].image}',
+                            'https://52b6-182-185-212-155.ngrok-free.app${chatRoom.membersInfo[0].image}',
                             chatRoom.lastMessage!.message ?? '',
                             chatRoom.membersInfo.first.id.toString(),
                           );

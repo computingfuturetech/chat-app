@@ -29,7 +29,7 @@ class ChatController extends GetxController {
     localDatabaseService.initDatabase();
   }
 
-  final baseUrl = 'https://2121-182-185-212-155.ngrok-free.app/chat';
+  final baseUrl = 'https://52b6-182-185-212-155.ngrok-free.app/chat';
 
   checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -178,7 +178,7 @@ class ChatController extends GetxController {
 
     channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://2121-182-185-212-155.ngrok-free.app/ws/chat/$chatRoomId/$userId/'),
+          'ws://52b6-182-185-212-155.ngrok-free.app/ws/chat/$chatRoomId/$userId/'),
     );
     update();
     localDatabaseService
