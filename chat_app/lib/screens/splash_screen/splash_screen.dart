@@ -21,6 +21,8 @@ class SplashScreen extends StatelessWidget {
       // Get.offAll(() => const Home(), transition: Transition.zoom);
     });
 
+    
+
     return Scaffold(
       body: Center(
         child: Image.asset(splash),

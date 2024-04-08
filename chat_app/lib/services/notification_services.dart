@@ -69,20 +69,19 @@ void onStart(ServiceInstance service) async {
     );
 
     final WebSocketChannel channel = WebSocketChannel.connect(
-      Uri.parse(
-          'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/2/5/'),
-          // 'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/$toId/$fromId/'),
+      Uri.parse('ws://4077-119-73-114-193.ngrok-free.app/ws/notification/2/5/'),
+      // 'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/$toId/$fromId/'),
     );
 
     // if (fromId.toString() == authId.toString()) {
-      // log('Same user id');
-      //  await flutterLocalNotificationsPlugin.show(
-      //   id,
-      //   'Friend Request Sent',
-      //   'Successfully sent Friend Request', // Pass the message here
-      //   notificationDetails,
-      //   payload: 'Simple Notification',
-      // );
+    // log('Same user id');
+    //  await flutterLocalNotificationsPlugin.show(
+    //   id,
+    //   'Friend Request Sent',
+    //   'Successfully sent Friend Request', // Pass the message here
+    //   notificationDetails,
+    //   payload: 'Simple Notification',
+    // );
     //   return;
     // }
 
