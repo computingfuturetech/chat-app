@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:chat_app/services/notification_services.dart';
 import 'package:chat_app/utils/exports.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class AuthController extends GetxController {
   final emailController = TextEditingController();
@@ -26,7 +30,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'https://52b6-182-185-212-155.ngrok-free.app/user';
+  final baseURL = 'https://4077-119-73-114-193.ngrok-free.app/user';
 
   signup() async {
     try {
@@ -236,6 +240,46 @@ class AuthController extends GetxController {
     isLoading(false);
   }
 
+  Future<void> deleteLocalDatabase() async {
+    try {
+      // Get the directory where databases are stored
+      var databasesPath = await getDatabasesPath();
+      // Construct the path to your database file
+      var path = join(databasesPath, 'chat_app_database.db');
+      // Check if the database file exists
+      bool exists = await databaseExists(path);
+      // If the database file exists, delete it
+      if (exists) {
+        await deleteDatabase(path);
+        print('Database deleted successfully');
+      } else {
+        print('Database does not exist');
+      }
+    } catch (e) {
+      print('Error deleting database: $e');
+    }
+  }
+
+  Future<void> deleteMessagesLocalDatabase() async {
+    try {
+      // Get the directory where databases are stored
+      var databasesPath = await getDatabasesPath();
+      // Construct the path to your database file
+      var path = join(databasesPath, 'chat_database.db');
+      // Check if the database file exists
+      bool exists = await databaseExists(path);
+      // If the database file exists, delete it
+      if (exists) {
+        await deleteDatabase(path);
+        print('Database deleted successfully');
+      } else {
+        print('Database does not exist');
+      }
+    } catch (e) {
+      print('Error deleting database: $e');
+    }
+  }
+
   logout() async {
     try {
       final sharedPreferences = await SharedPreferences.getInstance();
@@ -250,6 +294,8 @@ class AuthController extends GetxController {
       sharedPreferences.remove('image');
       sharedPreferences.remove('phone');
       sharedPreferences.remove('bio');
+      deleteLocalDatabase();
+      deleteMessagesLocalDatabase();
 
       userid.value = '';
       token.value = '';
@@ -453,8 +499,19 @@ class AuthController extends GetxController {
   }
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
     getUserDetails();
+
+    final notificationPermission = await Permission.notification.request();
+    if (notificationPermission.isGranted) {
+      await flutterLocalNotificationsPlugin.initialize(
+        const InitializationSettings(
+          android: AndroidInitializationSettings('app_icon'),
+        ),
+      );
+    } else {
+      await Permission.notification.request();
+    }
   }
 }

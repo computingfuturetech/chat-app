@@ -27,7 +27,7 @@ class MessageDatabaseService {
         path,
         onCreate: (db, version) {
           return db.execute(
-            'CREATE TABLE messages(id INTEGER PRIMARY KEY, content TEXT, sender TEXT, timestamp TEXT)',
+            'CREATE TABLE messages(id INTEGER PRIMARY KEY, sender TEXT, content TEXT, timestamp INTEGER, chatRoomId TEXT)',
           );
         },
         version: 1,
@@ -40,21 +40,47 @@ class MessageDatabaseService {
   }
 
   Future<void> insertMessage(ChatMessage message) async {
-    log('message1: ${message.sender}');
-    await initDatabase();
-    await _database.insert(
-      'messages',
-      message.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    log('Inserting message: ${message.content}');
+    try {
+      await _database
+          .insert(
+            'messages',
+            message.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          )
+          .then((value) => log('Message inserted'));
+      // _updateMessagesStream();
+    } catch (e) {
+      log('Error inserting message: $e');
+    }
   }
+  //   void _updateMessagesStream() async {
+  //   final result = await _database.query('messages');
+  //   if (result.isNotEmpty) {
+  //     _messagesController
+  //         .add(result.map((json) => ChatMessage.fromMap(json)).toList());
+  //   }
+  // }
 
-  Stream<List<ChatMessage>> getMessages() async* {
+  // Stream<List<ChatMessage>> getMessages() async* {
+  //   await initDatabase();
+  //   yield* _database
+  //       .query('messages')
+  //       .then(
+  //           (messages) => messages.map((m) => ChatMessage.fromMap(m)).toList())
+  //       .asStream();
+  // }
+
+  Stream<List<ChatMessage>> getMessages(String chatRoomId) async* {
     await initDatabase();
-    yield* _database
-        .query('messages')
-        .then(
-            (messages) => messages.map((m) => ChatMessage.fromMap(m)).toList())
-        .asStream();
+    final result = await _database.query(
+      'messages',
+      where: 'chatRoomId = ?',
+      whereArgs: [chatRoomId],
+    );
+
+    if (result.isNotEmpty) {
+      yield result.map((json) => ChatMessage.fromMap(json)).toList();
+    }
   }
 }

@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/services/database_services.dart';
 import 'package:chat_app/services/notification_services.dart';

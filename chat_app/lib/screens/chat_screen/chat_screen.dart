@@ -1,21 +1,10 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:chat_app/models/chat_model/chat_model.dart';
-import 'package:chat_app/screens/chat_screen/image_preview.dart';
-import 'package:chat_app/services/chat_message_database_service.dart';
+
 import 'package:chat_app/utils/exports.dart';
-import 'package:chat_app/widgets/bottom_sheet_modal.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_file_downloader/flutter_file_downloader.dart';
-import 'package:voice_message_package/voice_message_package.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:record/record.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:full_screen_image/full_screen_image.dart';
+import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
   // ignore: prefer_typing_uninitialized_variables
@@ -52,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
     log('isRecording: $isRecording');
     _channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://52b6-182-185-212-155.ngrok-free.app/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
+          'ws://4077-119-73-114-193.ngrok-free.app/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
     );
     _localDatabaseService.initDatabase().then((value) => !isDbOpen
         ? setState(() {
@@ -61,8 +50,6 @@ class _ChatScreenState extends State<ChatScreen> {
         : null);
 
     super.initState();
-
-    audioRecord = AudioRecorder();
     _channel.stream.listen((event) {
       var data = json.decode(event);
       log('data1122: $data');
@@ -73,6 +60,8 @@ class _ChatScreenState extends State<ChatScreen> {
         log('user1122 not same');
         _localDatabaseService
             .insertMessage(ChatMessage(
+                id: DateTime.now().millisecondsSinceEpoch,
+                chatRoomId: widget.chatRoomId,
                 content: event.toString(),
                 sender: 'Other',
                 timestamp: DateTime.now()))
@@ -89,6 +78,8 @@ class _ChatScreenState extends State<ChatScreen> {
         log('user1122 same');
         _localDatabaseService
             .insertMessage(ChatMessage(
+                id: DateTime.now().millisecondsSinceEpoch,
+                chatRoomId: widget.chatRoomId,
                 content: event.toString(),
                 sender: 'Me',
                 timestamp: DateTime.now()))
@@ -115,10 +106,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool playing = false;
   Future<void> startRecording() async {
-    if (!await _checkPermission()) {
-      log('Recording Permission not granted');
-      return;
-    }
+    audioRecord = AudioRecorder();
+    // if (!await _checkPermission()) {
+    //   log('Recording Permission not granted');
+    //   return;
+    // }
 
     try {
       log("START RECORDING+++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -147,7 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
       log("STOP RECORDING+++++++++++++++++++++++++++++++++++++++++++++++++");
       final path = await audioRecord.stop();
       log('Recording stopped: $path');
-      log('Recording stopped: $path');
+
       setState(() {
         isRecording = false;
         audioPath = path ?? '';
@@ -155,6 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (audioPath.isNotEmpty) {
         await uploadAndDeleteRecording(audioPath);
       }
+      await audioRecord.stop();
     } catch (e, stackTrace) {
       log('Error stopping recording: $e\n$stackTrace');
     }
@@ -171,6 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       log("UPLOADING FILE ++++++++++++++++$audiopath+++++++++++++++++++++++++++++++++");
       final bytes = await file.readAsBytes();
+      log('bytes: $bytes');
       _channel.sink.add(
         jsonEncode({
           'type': 'audio_type',
@@ -220,7 +214,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 fontSize: 16.0);
           }
         }).catchError((e) {
-          print('Error opening file: $e');
           Fluttertoast.showToast(
               msg: 'Error opening file: $e',
               toastLength: Toast.LENGTH_SHORT,
@@ -233,7 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
       } else {
         // File doesn't exist, so download it
         final downloadedFile = await FileDownloader.downloadFile(
-          url: "https://52b6-182-185-212-155.ngrok-free.app$message",
+          url: "https://4077-119-73-114-193.ngrok-free.app$message",
           name: fileName, // Specify the file name to save as
           downloadDestination: DownloadDestinations.publicDownloads,
           onDownloadCompleted: (String downloadedFilePath) {
@@ -275,7 +268,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 fontSize: 16.0);
           }
         }).catchError((e) {
-          print('Error opening file: $e');
           Fluttertoast.showToast(
               msg: 'Error opening file: $e',
               toastLength: Toast.LENGTH_SHORT,
@@ -287,7 +279,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     } catch (e) {
-      print('Error opening document: $e');
       Fluttertoast.showToast(
           msg: 'Error opening document: $e',
           toastLength: Toast.LENGTH_SHORT,
@@ -298,72 +289,6 @@ class _ChatScreenState extends State<ChatScreen> {
           fontSize: 16.0);
     }
   }
-
-  // void openDocument(BuildContext context, message) async {
-  //   try {
-  //     // Get temporary directory to save the downloaded file
-  //     final directory = await getTemporaryDirectory();
-  //     final path = directory.path;
-
-  //     // Download the file using your FileDownloader class
-  //     FileDownloader.downloadFile(
-  //       url: "https://2121-182-185-212-155.ngrok-free.app$message",
-  //       onDownloadCompleted: (String filePath) async {
-  //         Fluttertoast.showToast(
-  //             msg: 'File downloaded successfully at $filePath',
-  //             toastLength: Toast.LENGTH_SHORT,
-  //             gravity: ToastGravity.BOTTOM,
-  //             timeInSecForIosWeb: 1,
-  //             fontSize: 16.0);
-
-  //         // Open the downloaded file using open_file package
-
-  //         await Permission.storage.request();
-  //         await Permission.manageExternalStorage.request();
-
-  //         OpenFile.open(filePath).then((value) {
-  //           if (value.message == 'done') {
-  //             Fluttertoast.showToast(
-  //                 msg: 'File opened successfully',
-  //                 toastLength: Toast.LENGTH_SHORT,
-  //                 gravity: ToastGravity.BOTTOM,
-  //                 timeInSecForIosWeb: 1,
-  //                 fontSize: 16.0);
-  //           } else {
-  //             Fluttertoast.showToast(
-  //                 msg: 'No app found to open the file',
-  //                 toastLength: Toast.LENGTH_SHORT,
-  //                 gravity: ToastGravity.BOTTOM,
-  //                 timeInSecForIosWeb: 1,
-  //                 fontSize: 16.0);
-  //           }
-  //         }).catchError((e) {
-  //           log('Error opening file: $e');
-  //         });
-  //       },
-  //       onDownloadError: (String error) {
-  //         Fluttertoast.showToast(
-  //             msg: 'Download error: $error',
-  //             toastLength: Toast.LENGTH_SHORT,
-  //             gravity: ToastGravity.BOTTOM,
-  //             timeInSecForIosWeb: 1,
-  //             backgroundColor: Colors.red,
-  //             textColor: Colors.white,
-  //             fontSize: 16.0);
-  //       },
-  //     );
-  //   } catch (e) {
-  //     print('Error opening document: $e');
-  //     Fluttertoast.showToast(
-  //         msg: 'Error opening document',
-  //         toastLength: Toast.LENGTH_SHORT,
-  //         gravity: ToastGravity.BOTTOM,
-  //         timeInSecForIosWeb: 1,
-  //         backgroundColor: Colors.red,
-  //         textColor: Colors.white,
-  //         fontSize: 16.0);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -475,11 +400,17 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: StreamBuilder(
-                stream: _localDatabaseService.getMessages(),
+                stream: _localDatabaseService.getMessages(widget.chatRoomId),
                 builder: (context, snapshot) {
+                  log('snapshot: ${snapshot.data}');
                   if (!snapshot.hasData) {
                     return const Center(
-                      child: CupertinoActivityIndicator(),
+                      child: Text('No Messages found'),
+                      // child: CupertinoActivityIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Center(
+                      child: Text('Error fetching data'),
                     );
                   }
                   var data = snapshot.data!;
@@ -494,7 +425,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       final message;
-                      final timestamp;
+                      final timestam;
                       final sender = data[index].sender;
                       log('sender1: $sender');
                       final image;
@@ -506,8 +437,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       userId = decodedData['user_id'];
                       log('UserId: $userId and authController.userid: ${authController.userid}');
                       data[index].content.contains("timestamp")
-                          ? timestamp = decodedData['timestamp']
-                          : timestamp = data[index].timestamp;
+                          ? timestam = decodedData['timestamp']
+                          : timestam = data[index].timestamp;
+                      List<String> parts = timestam.split(':');
+                      int hour = int.parse(parts[0]);
+                      int minute = int.parse(parts[1]);
+
+                      // Format the time
+                      final timestamp = DateFormat('hh:mm a')
+                          .format(DateTime(0, 1, 1, hour, minute));
+
                       data[index].content.contains("content")
                           ? message = decodedData['content']
                           : message = data[index].content;
@@ -521,12 +460,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (image.toString() == 'image_type') {
                         return InkWell(
                           onTap: () {
-                            Get.to(
-                              () => ImagePreview(
-                                image:
-                                    'https://52b6-182-185-212-155.ngrok-free.app$message',
-                              ),
-                            );
+                            // Get.to(
+                            //   () => ImagePreview(
+                            //     image:
+                            //         'https://4077-119-73-114-193.ngrok-free.app$message',
+                            //   ),
+                            // );
                           },
                           child: Column(
                             children: [
@@ -540,6 +479,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ? Alignment.centerRight
                                         : Alignment.centerLeft,
                                     child: Container(
+                                      height: 250,
+                                      width: 250,
                                       decoration: BoxDecoration(
                                         color: sender == 'Me'
                                             ? primartColor
@@ -548,18 +489,26 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
-                                        child: CachedNetworkImage(
-                                          imageUrl:
-                                              'https://52b6-182-185-212-155.ngrok-free.app$message',
-                                          placeholder: (context, url) =>
-                                              const Center(
-                                            child: CupertinoActivityIndicator(),
+                                        child: FullScreenWidget(
+                                          backgroundColor:
+                                              const Color(0xFF000000),
+                                          disposeLevel: DisposeLevel.High,
+                                          child: Hero(
+                                            tag: "customTag",
+                                            child: CachedNetworkImage(
+                                              imageUrl:
+                                                  'https://4077-119-73-114-193.ngrok-free.app$message',
+                                              placeholder: (context, url) =>
+                                                  const Center(
+                                                child:
+                                                    CupertinoActivityIndicator(),
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      const Icon(Icons.error),
+                                              fit: BoxFit.fitWidth,
+                                            ),
                                           ),
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(Icons.error),
-                                          height: 250,
-                                          width: 250,
-                                          fit: BoxFit.cover,
                                         ),
                                       ),
                                     ),
@@ -587,23 +536,56 @@ class _ChatScreenState extends State<ChatScreen> {
                                   left: 50, top: 5, bottom: 5)
                               : const EdgeInsets.only(
                                   right: 50, top: 5, bottom: 5),
-                          child: VoiceMessageView(
-                            backgroundColor:
-                                sender == 'Me' ? primartColor : chatCardColor,
-                            circlesColor:
-                                sender == 'Me' ? greyColor : primaryFontColor,
-                            // size: 40,
-                            innerPadding: 10,
-                            controller: VoiceController(
-                              audioSrc:
-                                  'https://dl.musichi.ir/1401/06/21/Ghors%202.mp3',
-                              maxDuration: const Duration(seconds: 0),
-                              isFile: false,
-                              onComplete: () {},
-                              onPause: () {},
-                              onPlaying: () {},
-                              onError: (err) {},
-                            ),
+                          child: Column(
+                            crossAxisAlignment: sender == 'Me'
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              VoiceMessageView(
+                                backgroundColor: sender == 'Me'
+                                    ? primartColor
+                                    : chatCardColor,
+                                circlesColor: sender == 'Me'
+                                    ? greyColor
+                                    : primaryFontColor,
+
+                                activeSliderColor: sender == 'Me'
+                                    ? whiteColor
+                                    : primaryFontColor,
+                                // size: 40,
+                                counterTextStyle: TextStyle(
+                                  color: sender == 'Me'
+                                      ? whiteColor
+                                      : primaryFontColor,
+                                  fontSize: 12,
+                                  fontFamily: circularStdBook,
+                                ),
+                                innerPadding: 10,
+                                controller: VoiceController(
+                                  audioSrc:
+                                      'https://4077-119-73-114-193.ngrok-free.app$message',
+                                  maxDuration: const Duration(milliseconds: 1),
+                                  isFile: false,
+                                  onComplete: () {},
+                                  onPause: () {},
+                                  onPlaying: () {},
+                                  onError: (err) {
+                                    log('Error: $err');
+                                  },
+                                ),
+                              ),
+                              Text(
+                                timestamp.toString(),
+                                textAlign: sender == 'Me'
+                                    ? TextAlign.end
+                                    : TextAlign.start,
+                                style: const TextStyle(
+                                  color: greyColor,
+                                  fontSize: 10,
+                                  fontFamily: circularStdBook,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       } else if (image.toString() == 'document_type') {
@@ -622,18 +604,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             child: TextButton(
                               onPressed: () {
-                                //open document
-                                //You can download a single file
-                                // FileDownloader.downloadFile(
-                                //     url:
-                                //         "https://2121-182-185-212-155.ngrok-free.app$message",
-                                //     onDownloadCompleted: (String path) {
-                                //       Get.snackbar('Success',
-                                //           'FILE DOWNLOADED TO PATH: $path');
-                                //     },
-                                //     onDownloadError: (String error) {
-                                //       Get.snackbar(
-                                //           'Error', 'DOWNLOAD ERROR: $error');
                                 //     });
                                 openDocument(context, message);
                               },
@@ -739,6 +709,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
+                    readOnly: isRecording,
                     onFieldSubmitted: (value) {
                       chatController.isWriting.value = false;
                       log('value: ${chatController.isWriting.value}');
@@ -752,7 +723,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),
                       filled: true,
-                      hintText: 'Write your message',
+                      hintText:
+                          isRecording ? 'Recording...' : 'Write your message',
                       hintStyle: const TextStyle(
                         color: greyColor,
                         fontSize: 14,
@@ -772,6 +744,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           onTap: () {
                             log('inside send');
                             if (_controller.text.isNotEmpty) {
+                              log('inside send if');
                               _channel.sink.add(
                                 jsonEncode({
                                   'type': 'text_type',
@@ -779,16 +752,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                   'message': _controller.text,
                                 }),
                               );
-                              // _localDatabaseService.insertMessage(ChatMessage(
-                              //     content: _controller.text.toString(),
-                              //     sender: 'Me',
-                              //     timestamp: DateTime.now()));
-                              // updateListKey();
+                              log('message sent');
                               scrollToBottom();
                               chatController.isWriting.value = false;
 
                               _controller.clear();
-                              // chatController.sendMessage();
                             }
                           },
                           child: Container(
@@ -808,19 +776,21 @@ class _ChatScreenState extends State<ChatScreen> {
                         )
                       : Row(
                           children: [
-                            InkWell(
-                              onTap: () {
-                                chatController.pickImage(
-                                    context,
-                                    ImageSource.camera,
-                                    _channel,
-                                    widget.username);
-                              },
-                              child: const Icon(
-                                CupertinoIcons.camera,
-                                color: primaryFontColor,
-                              ),
-                            ),
+                            isRecording
+                                ? Container()
+                                : InkWell(
+                                    onTap: () {
+                                      chatController.pickImage(
+                                          context,
+                                          ImageSource.camera,
+                                          _channel,
+                                          widget.username);
+                                    },
+                                    child: const Icon(
+                                      CupertinoIcons.camera,
+                                      color: primaryFontColor,
+                                    ),
+                                  ),
                             const SizedBox(width: 15),
                             InkWell(
                               onTap: () {
@@ -833,13 +803,24 @@ class _ChatScreenState extends State<ChatScreen> {
                                       : startRecording();
                                 });
                               },
-                              child: Icon(
-                                CupertinoIcons.mic,
-                                color: isRecording
-                                    ? secondaryColor
-                                    : primaryFontColor,
-                                size: isRecording ? 35 : 25,
-                                // fill: isRecording ? 10.0 : 0.0,
+                              child: Container(
+                                padding: isRecording
+                                    ? const EdgeInsets.all(8.0)
+                                    : const EdgeInsets.all(0.0),
+                                decoration: BoxDecoration(
+                                  color: isRecording
+                                      ? primartColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(1000),
+                                ),
+                                child: Icon(
+                                  CupertinoIcons.mic,
+                                  color: isRecording
+                                      ? whiteColor
+                                      : primaryFontColor,
+                                  size: isRecording ? 30 : 25,
+                                  // fill: isRecording ? 10.0 : 0.0,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -863,11 +844,4 @@ class _ChatScreenState extends State<ChatScreen> {
       curve: Curves.easeOut,
     );
   }
-
-  // Function to update the list key and trigger rebuild
-  // void updateListKey() {
-  //   setState(() {
-  //     _listKey.currentState!.insertItem(0);
-  //   });
-  // }
 }

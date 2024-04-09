@@ -14,7 +14,7 @@ class UserController extends GetxController {
   final authController = Get.find<AuthController>();
   final users = <User>[].obs;
 
-  final baseUrl = 'https://52b6-182-185-212-155.ngrok-free.app/user';
+  final baseUrl = 'https://4077-119-73-114-193.ngrok-free.app/user';
   final token = ''.obs;
   final isHomeSearch = false.obs;
   final contactSearchController = TextEditingController();
@@ -227,8 +227,7 @@ class UserController extends GetxController {
         final header = {
           'Authorization': 'JWT ${token.value}',
         };
-        final url = Uri.parse(
-            'https://52b6-182-185-212-155.ngrok-free.app/chat/chatrooms/');
+        final url = Uri.parse('https://4077-119-73-114-193.ngrok-free.app/chat/chatrooms/');
 
         final response = await http.get(url, headers: header);
 
@@ -292,8 +291,7 @@ class UserController extends GetxController {
   Future<void> sendFriendRequestNotification() async {
     try {
       final WebSocketChannel channel = WebSocketChannel.connect(
-        Uri.parse(
-            'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/2/5/'),
+        Uri.parse('ws://4077-119-73-114-193.ngrok-free.app/ws/notification/2/5/'),
         // 'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/${toId.value}/${fromId.value}/'),
       );
       channel.stream.listen((event) {
@@ -402,17 +400,17 @@ class UserController extends GetxController {
       fromId.value = authController.userid.toString();
       log('toId: $toId');
       log('fromId: $fromId');
-      final response = await http.post(url, headers: header, body: body);
+      // final response = await http.post(url, headers: header, body: body);
 
       await sendFriendRequestNotification();
-      log(response.body);
-      if (response.statusCode == 200) {
-        log('Friend request sent successfully');
-        Get.snackbar('Success', 'Friend request sent');
-      } else {
-        log('Failed to send friend request');
-        throw 'Failed to load data';
-      }
+      // log(response.body);
+      // if (response.statusCode == 200) {
+      //   log('Friend request sent successfully');
+      //   Get.snackbar('Success', 'Friend request sent');
+      // } else {
+      //   log('Failed to send friend request');
+      //   throw 'Failed to load data';
+      // }
     } catch (e) {
       log('Error in sending friend request: $e');
       throw 'Error: $e';

@@ -16,6 +16,7 @@
         
         android:label="Chat Box"
         android:name="${applicationName}"
+        android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher">
         <activity
         android:showWhenLocked="true"

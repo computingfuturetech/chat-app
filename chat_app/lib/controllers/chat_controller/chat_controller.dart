@@ -25,11 +25,13 @@ class ChatController extends GetxController {
   ChatController() {
     checkCameraPermission();
     checkStoragePermission();
-    // checkMicrophonePermission();
+    Future.delayed(Duration.zero, () {
+    checkMicrophonePermission();
+  });
     localDatabaseService.initDatabase();
   }
 
-  final baseUrl = 'https://52b6-182-185-212-155.ngrok-free.app/chat';
+  final baseUrl = 'https://4077-119-73-114-193.ngrok-free.app/chat';
 
   checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -38,20 +40,40 @@ class ChatController extends GetxController {
     }
   }
 
-  checkStoragePermission() async {
-    var status = await Permission.storage.status;
-    if (status.isDenied) {
-      await Permission.storage.request();
+  PermissionStatus? _permissionStatus;
+
+  Future<void> checkStoragePermission() async {
+    if (_permissionStatus != null && _permissionStatus == PermissionStatus.granted) {
+      return; // Permission already granted, do nothing
+    }
+
+    _permissionStatus = await Permission.storage.request();
+
+    if (_permissionStatus == PermissionStatus.granted) {
+      log('Storage Permission granted');
+    } else if (_permissionStatus == PermissionStatus.denied) {
+      log('Storage Permission denied');
+    } else if (_permissionStatus == PermissionStatus.permanentlyDenied) {
+      log('Storage Permission permanently denied, guide user to settings');
+      openAppSettings();
     }
   }
 
-  checkMicrophonePermission() async {
-    var status = await Permission.microphone.status;
+ checkMicrophonePermission() async {
+  var status = await Permission.microphone.status;
 
-    if (status.isDenied) {
-      await Permission.microphone.request();
+  if (status.isDenied) {
+    final newStatus = await Permission.microphone.request();
+    if (newStatus.isGranted) {
+      // Permission granted, continue with your logic here
+    } else if (newStatus.isPermanentlyDenied) {
+      // Guide user to app settings
+      openAppSettings();
     }
+  } else if (status.isGranted) {
+    // Permission already granted, continue with your logic here
   }
+}
 
   pickImage(context, source, channel, username) async {
     // Request permissions
@@ -172,69 +194,77 @@ class ChatController extends GetxController {
     });
   }
 
-  void init(String chatRoomId, String userId) {
-    getToken();
-    log('chatRoomId: $chatRoomId, userId: $userId');
+  // void init(String chatRoomId, String userId) {
+  //   getToken();
+  //   log('chatRoomId: $chatRoomId, userId: $userId');
 
-    channel = WebSocketChannel.connect(
-      Uri.parse(
-          'ws://52b6-182-185-212-155.ngrok-free.app/ws/chat/$chatRoomId/$userId/'),
-    );
-    update();
-    localDatabaseService
-        .initDatabase()
-        .then((value) => !isDbOpen ? isDbOpen = true : null)
-        .then((_) {
-      // Ensure UI update after database initialization
-      update();
-    });
+  //   channel = WebSocketChannel.connect(
+  //     Uri.parse(
+  //         'ws://192.168.100.7:8000/ws/chat/$chatRoomId/$userId/'),
+  //   );
+  //   update();
+  //   localDatabaseService
+  //       .initDatabase()
+  //       .then((value) => !isDbOpen ? isDbOpen = true : null)
+  //       .then((_) {
+  //     // Ensure UI update after database initialization
+  //     update();
+  //   });
 
-    channel.stream.listen((event) {
-      var data = json.decode(event);
-      userId = data['user_id'];
-      log('value: $data');
+  //   channel.stream.listen((event) {
+  //     var data = json.decode(event);
+  //     userId = data['user_id'];
+  //     log('value: $data');
 
-      if (data['message'] == null && data['image'] != null) {
-        localDatabaseService
-            .insertMessage(ChatMessage(
-                content: event.toString(),
-                sender: 'Other',
-                timestamp: DateTime.now()))
-            .then((_) {
-          // Ensure UI update after inserting new message
-          update();
-        });
-        return;
-      }
+  //     if (data['message'] == null && data['image'] != null) {
+  //       localDatabaseService
+  //           .insertMessage(ChatMessage(
+  //               id: DateTime.now().millisecondsSinceEpoch,
+  //               chatRoomId: chatRoomId,
+  //               content: event.toString(),
+  //               sender: 'Other',
+  //               timestamp: DateTime.now()))
+  //           .then((_) {
+  //         // Ensure UI update after inserting new message
+  //         update();
+  //       });
+  //       return;
+  //     }
 
-      localDatabaseService
-          .insertMessage(ChatMessage(
-              content: event.toString(),
-              sender: 'Other',
-              timestamp: DateTime.now()))
-          .then((_) {
-        // Ensure UI update after inserting new message
-        update();
-      });
-    });
-  }
+  //     localDatabaseService
+  //         .insertMessage(ChatMessage(
+  //             id: DateTime.now().millisecondsSinceEpoch,
+  //             chatRoomId: chatRoomId,
+  //             content: event.toString(),
+  //             sender: 'Other',
+  //             timestamp: DateTime.now()))
+  //         .then((_) {
+  //       // Ensure UI update after inserting new message
+  //       update();
+  //     });
+  //   });
+  // }
 
-  void sendMessage(String message) {
-    if (message.isNotEmpty) {
-      channel.sink.add(
-        jsonEncode({
-          'type': 'text_type',
-          'username': 'username', // Set your username here
-          'message': message,
-        }),
-      );
+  // void sendMessage(String message, String chatRoomId) {
+  //   if (message.isNotEmpty) {
+  //     channel.sink.add(
+  //       jsonEncode({
+  //         'type': 'text_type',
+  //         'username': 'username', // Set your username here
+  //         'message': message,
+  //       }),
+  //     );
 
-      localDatabaseService.insertMessage(ChatMessage(
-          content: message, sender: 'Me', timestamp: DateTime.now()));
+  //     localDatabaseService.insertMessage(ChatMessage(
+  //         id: DateTime.now().millisecondsSinceEpoch,
+  //         chatRoomId: chatRoomId,
+  //         content: message,
+  //         sender: 'Me',
+  //         timestamp: DateTime.now()));
 
-      messageController.clear();
-    }
-  }
+  //     messageController.clear();
+  //   }
+  // }
 
   @override
   void onClose() {
