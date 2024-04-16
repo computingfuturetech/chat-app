@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_app/services/notification_services.dart';
@@ -30,7 +29,7 @@ class AuthController extends GetxController {
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
 
-  final baseURL = 'https://4077-119-73-114-193.ngrok-free.app/user';
+  // final baseURL = '$baseUrl/user';
 
   signup() async {
     try {
@@ -53,7 +52,7 @@ class AuthController extends GetxController {
         'username': username,
         'password': password,
       };
-      var url = Uri.parse('$baseURL/create/');
+      var url = Uri.parse('$baseUrl/user/create/');
       var response = await http.post(url, body: data);
       var responseJson = json.decode(response.body);
 
@@ -104,7 +103,7 @@ class AuthController extends GetxController {
         'email': email,
         'password': password,
       };
-      var url = Uri.parse('$baseURL/login/');
+      var url = Uri.parse('$baseUrl/user/login/');
       var response = await http.post(url, body: data);
       var responseJson = json.decode(response.body);
       log('Response JSON: $responseJson');
@@ -148,7 +147,7 @@ class AuthController extends GetxController {
       var data = {
         'email': email,
       };
-      var url = Uri.parse('$baseURL/send-otp/');
+      var url = Uri.parse('$baseUrl/user/send-otp/');
       var response = await http.post(url, body: data);
       var responseJson = json.decode(response.body);
       log('Response JSON: $responseJson');
@@ -186,7 +185,7 @@ class AuthController extends GetxController {
         'email': email,
         'otp': otp,
       };
-      var url = Uri.parse('$baseURL/verify-otp/');
+      var url = Uri.parse('$baseUrl/user/verify-otp/');
       var response = await http.post(url, body: data);
       log('ResponseCode JSON: ${response.statusCode}');
       if (response.statusCode == 200) {
@@ -222,7 +221,7 @@ class AuthController extends GetxController {
         'password': password,
         'confirm_password': confirmPassword,
       };
-      var url = Uri.parse('$baseURL/forget-password/');
+      var url = Uri.parse('$baseUrl/user/forget-password/');
       var response = await http.put(url, body: data);
       var responseJson = json.decode(response.body);
       log('Response JSON: $responseJson');
@@ -251,12 +250,12 @@ class AuthController extends GetxController {
       // If the database file exists, delete it
       if (exists) {
         await deleteDatabase(path);
-        print('Database deleted successfully');
+        log('Database deleted successfully');
       } else {
-        print('Database does not exist');
+        log('Database does not exist');
       }
     } catch (e) {
-      print('Error deleting database: $e');
+      log('Error deleting database: $e');
     }
   }
 
@@ -271,12 +270,12 @@ class AuthController extends GetxController {
       // If the database file exists, delete it
       if (exists) {
         await deleteDatabase(path);
-        print('Database deleted successfully');
+        log('Database deleted successfully');
       } else {
-        print('Database does not exist');
+        log('Database does not exist');
       }
     } catch (e) {
-      print('Error deleting database: $e');
+      log('Error deleting database: $e');
     }
   }
 
@@ -319,7 +318,7 @@ class AuthController extends GetxController {
       final idToken = googleSignInAuthentication?.idToken;
       log('Access Token: $accessToken');
       log('ID Token: $idToken');
-      final url = Uri.parse('$baseURL/google/');
+      final url = Uri.parse('$baseUrl/user/google/');
       final response = await http.post(url, body: {
         'access_token': accessToken,
         // 'id_token': idToken,
@@ -349,7 +348,7 @@ class AuthController extends GetxController {
   //     final result = await facebookLogin.logIn(['email']);
   //     final accessToken = result.accessToken.token;
   //     log('Access Token: $accessToken');
-  //     final url = Uri.parse('$baseURL/facebook/');
+  //     final url = Uri.parse('$baseUrl/user/facebook/');
   //     final response = await http.post(url, body: {
   //       'access_token': accessToken,
   //     });
@@ -375,7 +374,7 @@ class AuthController extends GetxController {
   //     final LoginResult result = await FacebookAuth.instance.login();
   //     final AccessToken? accessToken = result.accessToken;
   //     log('Access Token: $accessToken');
-  // final url = Uri.parse('$baseURL/facebook/');
+  // final url = Uri.parse('$baseUrl/user/facebook/');
   // final response = await http.post(url, body: {
   //   'access_token': accessToken?.token,
   // });
@@ -419,7 +418,7 @@ class AuthController extends GetxController {
         log('User details do not exist');
         try {
           // log('Inside getUserDetails try try');
-          final url = Uri.parse('$baseURL/update/');
+          final url = Uri.parse('$baseUrl/user/update/');
           // log('URL: $url');
           final response = await http.post(url, headers: {
             'Authorization': 'JWT ${prefs.getString('token')}',
@@ -446,7 +445,7 @@ class AuthController extends GetxController {
             if (responseJson.containsKey('image')) {
               final imageValue = responseJson['image'];
               prefs.setString('image', imageValue ?? '');
-              image.value = '$baseURL${prefs.getString('image')}';
+              image.value = '$baseUrl${prefs.getString('image')}';
             }
             if (responseJson.containsKey('phone')) {
               final phoneValue = responseJson['phone'];
@@ -482,10 +481,11 @@ class AuthController extends GetxController {
         username.value =
             '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
         email.value = prefs.getString('email')!;
-        image.value = '$baseURL${prefs.getString('image')}';
+        image.value = '$baseUrl${prefs.getString('image')}';
         phone.value = prefs.getString('phone') ?? '';
         bio.value = prefs.getString('bio') ?? '';
         userid.value = prefs.getString('id')!;
+        log('Image: ${image.value.toString()}');
 
         // log('Username: ${username.value}');
         // log('Email: ${email.value}');

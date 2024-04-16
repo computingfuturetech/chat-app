@@ -13,15 +13,14 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UserController());
-    final authController = Get.put(AuthController());
+    final authController = Get.put(AuthController()); 
     return Scaffold(
       backgroundColor: primaryFontColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: customAppBar(
-          title: 'Home',
-          imageUrl:
-              authController.image.value ?? 'https://via.placeholder.com/150',
+          title: 'Messages',
+          imageUrl: authController.image.value,
           isIcon: false,
           searchOnPressed: () {
             Get.to(
@@ -90,8 +89,8 @@ class HomeScreen extends StatelessWidget {
                             '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
                             chatRoom.membersInfo[0].bio,
                             chatRoom.id.toString(),
-                            'https://4077-119-73-114-193.ngrok-free.app${chatRoom.membersInfo[0].image}',
-                            chatRoom.lastMessage!.message ?? '',
+                            '$baseUrl${chatRoom.membersInfo[0].image}',
+                            chatRoom.lastMessage.message,
                             chatRoom.membersInfo.first.id.toString(),
                           );
                         },

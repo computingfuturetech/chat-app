@@ -193,7 +193,7 @@ Widget homeUsers(
                       height: 18,
                       width: 18,
                       decoration: BoxDecoration(
-                        color: redColor,
+                        color: primartColor,
                         borderRadius: BorderRadius.circular(1000),
                       ),
                       // padding: const EdgeInsets.all(4),

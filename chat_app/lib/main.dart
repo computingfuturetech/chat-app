@@ -1,8 +1,6 @@
-import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/services/database_services.dart';
 import 'package:chat_app/services/notification_services.dart';
 import 'package:chat_app/utils/exports.dart';
-import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,

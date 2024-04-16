@@ -1,6 +1,5 @@
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
