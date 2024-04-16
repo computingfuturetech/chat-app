@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -7,6 +9,7 @@ class SettingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var controller = Get.put(AuthController());
+    log("Image from ${controller.image.value}");
     return Scaffold(
       backgroundColor: primaryFontColor,
       appBar: PreferredSize(
@@ -58,7 +61,7 @@ class SettingScreen extends StatelessWidget {
                               placeholder: (context, url) =>
                                   const CircularProgressIndicator(),
                               errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
+                                  const Icon(Icons.person, size: 40),
                             ),
                           ),
                           const SizedBox(

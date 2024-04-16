@@ -43,6 +43,7 @@ dependencies:
   onesignal_flutter: ^5.1.3
   just_transitions: ^1.0.1
   intl: ^0.18.1
+  video_player: ^2.8.6
 
 dev_dependencies:
   flutter_test:

@@ -1,13 +1,16 @@
+// ignore_for_file: prefer_typing_uninitialized_variables
+
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:chat_app/screens/chat_screen/video_player_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
+import 'package:video_player/video_player.dart';
 
 class ChatScreen extends StatefulWidget {
-  // ignore: prefer_typing_uninitialized_variables
   final image, username, chatRoomId, secondUserId;
   const ChatScreen(
       {super.key,
@@ -35,13 +38,14 @@ class _ChatScreenState extends State<ChatScreen> {
   String audioPath = "";
 
   bool isAudioPlayerInitialized = false; // Add this flag
+  late VideoPlayerController _videoPlayerController;
 
   @override
   void initState() {
     log('isRecording: $isRecording');
     _channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://4077-119-73-114-193.ngrok-free.app/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
+          '$webSocketUrl/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
     );
     _localDatabaseService.initDatabase().then((value) => !isDbOpen
         ? setState(() {
@@ -50,6 +54,13 @@ class _ChatScreenState extends State<ChatScreen> {
         : null);
 
     super.initState();
+    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
+        'https://www.sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4'))
+      ..initialize().then((_) {
+        setState(() {
+          isAudioPlayerInitialized = true;
+        });
+      });
     _channel.stream.listen((event) {
       var data = json.decode(event);
       log('data1122: $data');
@@ -125,13 +136,6 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       log('Error starting recording: $e');
     }
-  }
-
-  Future<bool> _checkPermission() async {
-    var micPermission = await Permission.microphone.request();
-    final storagePermission = await Permission.storage.request();
-
-    return micPermission.isGranted && storagePermission.isGranted;
   }
 
   Future<void> stopRecording() async {
@@ -226,7 +230,7 @@ class _ChatScreenState extends State<ChatScreen> {
       } else {
         // File doesn't exist, so download it
         final downloadedFile = await FileDownloader.downloadFile(
-          url: "https://4077-119-73-114-193.ngrok-free.app$message",
+          url: "$baseUrl$message",
           name: fileName, // Specify the file name to save as
           downloadDestination: DownloadDestinations.publicDownloads,
           onDownloadCompleted: (String downloadedFilePath) {
@@ -294,544 +298,688 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final chatController = Get.put(ChatController());
     return Scaffold(
-      appBar: AppBar(
-        leading: InkWell(
-          splashColor: Colors.transparent,
-          splashFactory: NoSplash.splashFactory,
-          onTap: () {
-            Get.back();
-          },
-          child: const Icon(
-            size: 20,
-            CupertinoIcons.back,
-            color: primaryFontColor,
+      // extendBodyBehindAppBar: true,
+      backgroundColor: primartColor,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: primartColor,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(0),
+            ),
           ),
-        ),
-        leadingWidth: 30,
-        title: Row(
-          children: [
-            Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
+          child: AppBar(
+            // backgroundColor: primartColor.withOpacity(1.0),
+            // forceMaterialTransparency: true,
+            leading: InkWell(
+              splashColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory,
+              onTap: () {
+                Get.back();
+              },
+              child: const Icon(
+                size: 20,
+                CupertinoIcons.back,
+                // color: primaryFontColor,
                 color: whiteColor,
-                borderRadius: BorderRadius.circular(1000),
               ),
-              child: Center(
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(1000),
-                      child: CachedNetworkImage(
-                          placeholder: (context, url) => const Center(
-                                child: CupertinoActivityIndicator(),
-                              ),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.person),
-                          height: 40,
-                          width: 40,
-                          fit: BoxFit.cover,
-                          imageUrl: widget.image),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        height: 12,
-                        width: 12,
-                        decoration: BoxDecoration(
-                          color: whiteColor,
+            ),
+            leadingWidth: 30,
+            title: Row(
+              children: [
+                Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    // color: whiteColor,
+                    color: primaryFontColor,
+                    borderRadius: BorderRadius.circular(1000),
+                  ),
+                  child: Center(
+                    child: Stack(
+                      children: [
+                        ClipRRect(
                           borderRadius: BorderRadius.circular(1000),
+                          child: CachedNetworkImage(
+                              placeholder: (context, url) => const Center(
+                                    child: CupertinoActivityIndicator(),
+                                  ),
+                              errorWidget: (context, url, error) => const Icon(
+                                    Icons.person,
+                                    color: whiteColor,
+                                  ),
+                              height: 40,
+                              width: 40,
+                              fit: BoxFit.cover,
+                              imageUrl: widget.image),
                         ),
-                        child: Center(
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
                           child: Container(
-                            height: 8,
-                            width: 8,
+                            height: 12,
+                            width: 12,
                             decoration: BoxDecoration(
-                              color: greenColor,
+                              color: whiteColor,
                               borderRadius: BorderRadius.circular(1000),
+                            ),
+                            child: Center(
+                              child: Container(
+                                height: 8,
+                                width: 8,
+                                decoration: BoxDecoration(
+                                  color: greenColor,
+                                  borderRadius: BorderRadius.circular(1000),
+                                ),
+                              ),
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.username,
+                      style: const TextStyle(
+                        // color: primaryFontColor,
+                        color: whiteColor,
+                        fontSize: 14,
+                        fontFamily: carosMedium,
+                      ),
+                    ),
+                    const Text(
+                      'Active Now',
+                      style: TextStyle(
+                        // color: greyColor,
+                        color: lightgreyColor,
+                        fontSize: 12,
+                        fontFamily: circularStdBook,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.username,
-                  style: const TextStyle(
-                    color: primaryFontColor,
-                    fontSize: 14,
-                    fontFamily: carosMedium,
-                  ),
-                ),
-                const Text(
-                  'Active Now',
-                  style: TextStyle(
-                    color: greyColor,
-                    fontSize: 12,
-                    fontFamily: circularStdBook,
-                  ),
-                ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            // icon: Image.asset('assets/icons/Call.png'),
-            icon: const Icon(
-              CupertinoIcons.ellipsis_vertical,
-              color: primaryFontColor,
-              size: 20,
-            ),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                // icon: Image.asset('assets/icons/Call.png'),
+                icon: const Icon(
+                  CupertinoIcons.ellipsis_vertical,
+                  // color: primaryFontColor,
+                  color: whiteColor,
+                  size: 20,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder(
-                stream: _localDatabaseService.getMessages(widget.chatRoomId),
-                builder: (context, snapshot) {
-                  log('snapshot: ${snapshot.data}');
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: Text('No Messages found'),
-                      // child: CupertinoActivityIndicator(),
-                    );
-                  } else if (snapshot.hasError) {
-                    return const Center(
-                      child: Text('Error fetching data'),
-                    );
-                  }
-                  var data = snapshot.data!;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    scrollToBottom();
-                  });
-                  return ListView.builder(
-                    key: _listKey,
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: data.length,
-                    itemBuilder: (context, index) {
-                      final message;
-                      final timestam;
-                      final sender = data[index].sender;
-                      log('sender1: $sender');
-                      final image;
-                      final decodedData;
-                      data[index].content.contains("username")
-                          ? decodedData = json.decode(data[index].content)
-                          : decodedData = data[index].content;
-                      log('decodedData: $decodedData');
-                      userId = decodedData['user_id'];
-                      log('UserId: $userId and authController.userid: ${authController.userid}');
-                      data[index].content.contains("timestamp")
-                          ? timestam = decodedData['timestamp']
-                          : timestam = data[index].timestamp;
-                      List<String> parts = timestam.split(':');
-                      int hour = int.parse(parts[0]);
-                      int minute = int.parse(parts[1]);
+      body: Container(
+        decoration: const BoxDecoration(
+          color: whiteColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(40),
+            topRight: Radius.circular(40),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Expanded(
+              child: StreamBuilder(
+                  stream: _localDatabaseService.getMessages(widget.chatRoomId),
+                  builder: (context, snapshot) {
+                    log('snapshot: ${snapshot.data}');
+                    if (!snapshot.hasData) {
+                      return const Center(
+                        child: Text('No Messages found'),
+                        // child: CupertinoActivityIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return const Center(
+                        child: Text('Error fetching data'),
+                      );
+                    }
+                    var data = snapshot.data!;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      scrollToBottom();
+                    });
+                    return ListView.builder(
+                      key: _listKey,
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: data.length,
+                      itemBuilder: (context, index) {
+                        final message;
+                        final timestam;
+                        final sender = data[index].sender;
+                        log('sender1: $sender');
+                        final image;
+                        final decodedData;
+                        data[index].content.contains("username")
+                            ? decodedData = json.decode(data[index].content)
+                            : decodedData = data[index].content;
+                        log('decodedData: $decodedData');
+                        userId = decodedData['user_id'];
+                        log('UserId: $userId and authController.userid: ${authController.userid}');
+                        data[index].content.contains("timestamp")
+                            ? timestam = decodedData['timestamp']
+                            : timestam = data[index].timestamp;
+                        List<String> parts = timestam.split(':');
+                        int hour = int.parse(parts[0]);
+                        int minute = int.parse(parts[1]);
 
-                      // Format the time
-                      final timestamp = DateFormat('hh:mm a')
-                          .format(DateTime(0, 1, 1, hour, minute));
+                        // Format the time
+                        final timestamp = DateFormat('hh:mm a')
+                            .format(DateTime(0, 1, 1, hour, minute));
 
-                      data[index].content.contains("content")
-                          ? message = decodedData['content']
-                          : message = data[index].content;
-                      data[index].content.contains("message_type")
-                          ? image = decodedData['message_type']
-                          : image = data[index].content;
+                        data[index].content.contains("content")
+                            ? message = decodedData['content']
+                            : message = data[index].content;
+                        data[index].content.contains("message_type")
+                            ? image = decodedData['message_type']
+                            : image = data[index].content;
 
-                      log('simage1122: ${image.toString()}');
+                        log('simage1122: ${image.toString()}');
 
-                      // Check if the message is an image
-                      if (image.toString() == 'image_type') {
-                        return InkWell(
-                          onTap: () {
-                            // Get.to(
-                            //   () => ImagePreview(
-                            //     image:
-                            //         'https://4077-119-73-114-193.ngrok-free.app$message',
-                            //   ),
-                            // );
-                          },
-                          child: Column(
-                            children: [
-                              Column(
-                                crossAxisAlignment: sender == 'Me'
-                                    ? CrossAxisAlignment.end
-                                    : CrossAxisAlignment.start,
-                                children: [
-                                  Align(
-                                    alignment: sender == 'Me'
-                                        ? Alignment.centerRight
-                                        : Alignment.centerLeft,
-                                    child: Container(
-                                      height: 250,
-                                      width: 250,
-                                      decoration: BoxDecoration(
-                                        color: sender == 'Me'
-                                            ? primartColor
-                                            : chatCardColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: FullScreenWidget(
-                                          backgroundColor:
-                                              const Color(0xFF000000),
-                                          disposeLevel: DisposeLevel.High,
-                                          child: Hero(
-                                            tag: "customTag",
-                                            child: CachedNetworkImage(
-                                              imageUrl:
-                                                  'https://4077-119-73-114-193.ngrok-free.app$message',
-                                              placeholder: (context, url) =>
-                                                  const Center(
-                                                child:
-                                                    CupertinoActivityIndicator(),
+                        // Check if the message is an image
+                        if (image.toString() == 'image_type') {
+                          return InkWell(
+                            onTap: () {
+                              // Get.to(
+                              //   () => ImagePreview(
+                              //     image:
+                              //         '$baseUrl$message',
+                              //   ),
+                              // );
+                            },
+                            child: Column(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: sender == 'Me'
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    Align(
+                                      alignment: sender == 'Me'
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        height: 250,
+                                        width: 250,
+                                        decoration: BoxDecoration(
+                                          color: sender == 'Me'
+                                              ? primartColor
+                                              : chatCardColor,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: FullScreenWidget(
+                                            backgroundColor:
+                                                const Color(0xFF000000),
+                                            disposeLevel: DisposeLevel.High,
+                                            child: Hero(
+                                              tag: "customTag",
+                                              child: CachedNetworkImage(
+                                                imageUrl: '$baseUrl$message',
+                                                placeholder: (context, url) =>
+                                                    const Center(
+                                                  child:
+                                                      CupertinoActivityIndicator(),
+                                                ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error),
+                                                fit: BoxFit.fitWidth,
                                               ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      const Icon(Icons.error),
-                                              fit: BoxFit.fitWidth,
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    timestamp.toString(),
-                                    textAlign: TextAlign.end,
-                                    style: const TextStyle(
-                                      color: greyColor,
-                                      fontSize: 10,
-                                      fontFamily: circularStdBook,
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      timestamp.toString(),
+                                      textAlign: TextAlign.end,
+                                      style: const TextStyle(
+                                        color: greyColor,
+                                        fontSize: 10,
+                                        fontFamily: circularStdBook,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      } else if (image.toString() == 'audio_type') {
-                        return Container(
-                          width: 50,
-                          padding: sender == 'Me'
-                              ? const EdgeInsets.only(
-                                  left: 50, top: 5, bottom: 5)
-                              : const EdgeInsets.only(
-                                  right: 50, top: 5, bottom: 5),
-                          child: Column(
-                            crossAxisAlignment: sender == 'Me'
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              VoiceMessageView(
-                                backgroundColor: sender == 'Me'
-                                    ? primartColor
-                                    : chatCardColor,
-                                circlesColor: sender == 'Me'
-                                    ? greyColor
-                                    : primaryFontColor,
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (image.toString() == 'audio_type') {
+                          return Container(
+                            width: 50,
+                            padding: sender == 'Me'
+                                ? const EdgeInsets.only(
+                                    left: 50, top: 5, bottom: 5)
+                                : const EdgeInsets.only(
+                                    right: 50, top: 5, bottom: 5),
+                            child: Column(
+                              crossAxisAlignment: sender == 'Me'
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                VoiceMessageView(
+                                  backgroundColor: sender == 'Me'
+                                      ? primartColor
+                                      : chatCardColor,
+                                  circlesColor: sender == 'Me'
+                                      ? greyColor
+                                      : primaryFontColor,
 
-                                activeSliderColor: sender == 'Me'
-                                    ? whiteColor
-                                    : primaryFontColor,
-                                // size: 40,
-                                counterTextStyle: TextStyle(
-                                  color: sender == 'Me'
+                                  activeSliderColor: sender == 'Me'
                                       ? whiteColor
                                       : primaryFontColor,
-                                  fontSize: 12,
-                                  fontFamily: circularStdBook,
+                                  // size: 40,
+                                  counterTextStyle: TextStyle(
+                                    color: sender == 'Me'
+                                        ? whiteColor
+                                        : primaryFontColor,
+                                    fontSize: 12,
+                                    fontFamily: circularStdBook,
+                                  ),
+                                  innerPadding: 10,
+                                  controller: VoiceController(
+                                    audioSrc: '$baseUrl$message',
+                                    // audioSrc:
+                                    //     'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                                    maxDuration:
+                                        const Duration(milliseconds: 1),
+                                    isFile: false,
+                                    onComplete: () {},
+                                    onPause: () {},
+                                    onPlaying: () {},
+                                    onError: (err) {
+                                      log('Error: $err');
+                                    },
+                                  ),
                                 ),
-                                innerPadding: 10,
-                                controller: VoiceController(
-                                  audioSrc:
-                                      'https://4077-119-73-114-193.ngrok-free.app$message',
-                                  maxDuration: const Duration(milliseconds: 1),
-                                  isFile: false,
-                                  onComplete: () {},
-                                  onPause: () {},
-                                  onPlaying: () {},
-                                  onError: (err) {
-                                    log('Error: $err');
-                                  },
+                                Text(
+                                  timestamp.toString(),
+                                  textAlign: sender == 'Me'
+                                      ? TextAlign.end
+                                      : TextAlign.start,
+                                  style: const TextStyle(
+                                    color: greyColor,
+                                    fontSize: 10,
+                                    fontFamily: circularStdBook,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                timestamp.toString(),
-                                textAlign: sender == 'Me'
-                                    ? TextAlign.end
-                                    : TextAlign.start,
-                                style: const TextStyle(
-                                  color: greyColor,
-                                  fontSize: 10,
-                                  fontFamily: circularStdBook,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else if (image.toString() == 'document_type') {
-                        //document preview ui
-                        return Align(
-                          alignment: sender == 'Me'
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.5,
-                            margin: const EdgeInsets.symmetric(vertical: 5),
-                            decoration: BoxDecoration(
-                              color:
-                                  sender == 'Me' ? primartColor : chatCardColor,
-                              borderRadius: BorderRadius.circular(10),
+                              ],
                             ),
-                            child: TextButton(
-                              onPressed: () {
-                                //     });
-                                openDocument(context, message);
-                              },
-                              child: const Text(
-                                'Document',
-                                style: TextStyle(
-                                  color: whiteColor,
-                                  fontSize: 12,
-                                  fontFamily: circularStdBook,
+                          );
+                        } else if (image.toString() == 'video_type') {
+                          return InkWell(
+                            onTap: () {
+                              Get.to(
+                                () => VideoPlayerScreen(
+                                  videoUrl: '$baseUrl$message',
                                 ),
-                              ),
-                            ),
-                          ),
-                        );
-                      } else {
-                        return Column(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(top: 10),
-                              child: Column(
-                                crossAxisAlignment: sender == 'Me'
-                                    ? CrossAxisAlignment.end
-                                    : CrossAxisAlignment.start,
-                                children: [
-                                  Align(
-                                    alignment: sender == 'Me'
-                                        ? Alignment.centerRight
-                                        : Alignment.centerLeft,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 15, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: sender == 'Me'
-                                            ? primartColor
-                                            : chatCardColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        message,
-                                        style: TextStyle(
+                              );
+                            },
+                            child: Column(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: sender == 'Me'
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    Align(
+                                      alignment: sender == 'Me'
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        height: 250,
+                                        width: 250,
+                                        decoration: BoxDecoration(
                                           color: sender == 'Me'
-                                              ? whiteColor
-                                              : primaryFontColor,
-                                          fontSize: 12,
-                                          fontFamily: circularStdBook,
+                                              ? primartColor
+                                              : chatCardColor,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: VideoPlayer(
+                                              _videoPlayerController),
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      timestamp.toString(),
+                                      textAlign: TextAlign.end,
+                                      style: const TextStyle(
+                                        color: greyColor,
+                                        fontSize: 10,
+                                        fontFamily: circularStdBook,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (image.toString() == 'document_type') {
+                          //document preview ui
+                          return Align(
+                            alignment: sender == 'Me'
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
+                            child: Column(
+                              crossAxisAlignment: sender == 'Me'
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  padding: const EdgeInsets.all(4),
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: sender == 'Me'
+                                        ? primartColor
+                                        : chatCardColor,
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    timestamp.toString(),
-                                    textAlign: TextAlign.end,
-                                    style: const TextStyle(
-                                      color: greyColor,
-                                      fontSize: 10,
-                                      fontFamily: circularStdBook,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      //     });
+                                      openDocument(context, message);
+                                    },
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.5,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: sender == 'Me'
+                                            ? primartColor.withAlpha(5)
+                                            : chatCardColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Document',
+                                            style: TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 14,
+                                              fontFamily: circularStdBook,
+                                            ),
+                                          ),
+                                          Spacer(),
+                                          Icon(
+                                            Icons.download,
+                                            color: whiteColor,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                Text(
+                                  timestamp.toString(),
+                                  textAlign: TextAlign.end,
+                                  style: const TextStyle(
+                                    color: greyColor,
+                                    fontSize: 10,
+                                    fontFamily: circularStdBook,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                }),
-          ),
-          Container(
-            height: 60,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: whiteColor,
-              // borderRadius: BorderRadius.circular(1000),
-            ),
-            child: Row(
-              children: [
-                // const SizedBox(width: 20),
-                InkWell(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return bottomModalSheet(
-                            chatController, context, _channel, widget.username);
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(top: 10),
+                                child: Column(
+                                  crossAxisAlignment: sender == 'Me'
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    Align(
+                                      alignment: sender == 'Me'
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: sender == 'Me'
+                                              ? primartColor
+                                              : chatCardColor,
+                                          borderRadius: sender == 'Me'
+                                              ? const BorderRadius.only(
+                                                  topLeft: Radius.circular(10),
+                                                  topRight: Radius.circular(10),
+                                                  bottomLeft:
+                                                      Radius.circular(10))
+                                              : const BorderRadius.only(
+                                                  topLeft: Radius.circular(10),
+                                                  topRight: Radius.circular(10),
+                                                  bottomRight:
+                                                      Radius.circular(10),
+                                                ),
+                                        ),
+                                        child: Text(
+                                          message,
+                                          style: TextStyle(
+                                            color: sender == 'Me'
+                                                ? whiteColor
+                                                : primaryFontColor,
+                                            fontSize: 12,
+                                            fontFamily: circularStdBook,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      timestamp.toString(),
+                                      textAlign: TextAlign.end,
+                                      style: const TextStyle(
+                                        color: greyColor,
+                                        fontSize: 10,
+                                        fontFamily: circularStdBook,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return null;
                       },
                     );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: lightgreyColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.attach_file,
-                      color: primaryFontColor,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFormField(
-                    readOnly: isRecording,
-                    onFieldSubmitted: (value) {
-                      chatController.isWriting.value = false;
-                      log('value: ${chatController.isWriting.value}');
+                  }),
+            ),
+            Container(
+              height: 60,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: whiteColor,
+                // borderRadius: BorderRadius.circular(1000),
+              ),
+              child: Row(
+                children: [
+                  // const SizedBox(width: 20),
+                  InkWell(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return bottomModalSheet(chatController, context,
+                              _channel, widget.username);
+                        },
+                      );
                     },
-                    // controller: chatController.messageController,
-                    controller: _controller,
-                    cursorColor: secondaryFontColor,
-                    onChanged: (value) => chatController.isWriting.value = true,
-                    decoration: InputDecoration(
-                      fillColor: lightgreyColor,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      filled: true,
-                      hintText:
-                          isRecording ? 'Recording...' : 'Write your message',
-                      hintStyle: const TextStyle(
-                        color: greyColor,
-                        fontSize: 14,
-                        fontFamily: circularStdBook,
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: lightgreyColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      child: const Icon(
+                        Icons.attach_file,
+                        color: primaryFontColor,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Obx(
-                  () => chatController.isWriting.value
-                      ? InkWell(
-                          onTap: () {
-                            log('inside send');
-                            if (_controller.text.isNotEmpty) {
-                              log('inside send if');
-                              _channel.sink.add(
-                                jsonEncode({
-                                  'type': 'text_type',
-                                  'username': widget.username,
-                                  'message': _controller.text,
-                                }),
-                              );
-                              log('message sent');
-                              scrollToBottom();
-                              chatController.isWriting.value = false;
 
-                              _controller.clear();
-                            }
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(right: 10),
-                            padding: const EdgeInsets.only(
-                                left: 12, right: 8, top: 10, bottom: 10),
-                            decoration: BoxDecoration(
-                              color: primartColor,
-                              borderRadius: BorderRadius.circular(1000),
-                            ),
-                            child: const Icon(
-                              size: 20,
-                              Icons.send,
-                              color: whiteColor,
-                            ),
-                          ),
-                        )
-                      : Row(
-                          children: [
-                            isRecording
-                                ? Container()
-                                : InkWell(
-                                    onTap: () {
-                                      chatController.pickImage(
-                                          context,
-                                          ImageSource.camera,
-                                          _channel,
-                                          widget.username);
-                                    },
-                                    child: const Icon(
-                                      CupertinoIcons.camera,
-                                      color: primaryFontColor,
-                                    ),
-                                  ),
-                            const SizedBox(width: 15),
-                            InkWell(
-                              onTap: () {
-                                log('isRecording: $isRecording');
-                                //vibrate
-                                HapticFeedback.vibrate();
-                                setState(() {
-                                  isRecording
-                                      ? stopRecording()
-                                      : startRecording();
-                                });
-                              },
-                              child: Container(
-                                padding: isRecording
-                                    ? const EdgeInsets.all(8.0)
-                                    : const EdgeInsets.all(0.0),
-                                decoration: BoxDecoration(
-                                  color: isRecording
-                                      ? primartColor
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(1000),
-                                ),
-                                child: Icon(
-                                  CupertinoIcons.mic,
-                                  color: isRecording
-                                      ? whiteColor
-                                      : primaryFontColor,
-                                  size: isRecording ? 30 : 25,
-                                  // fill: isRecording ? 10.0 : 0.0,
-                                ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      readOnly: isRecording,
+                      onFieldSubmitted: (value) {
+                        chatController.isWriting.value = false;
+                        log('value: ${chatController.isWriting.value}');
+                      },
+                      // controller: chatController.messageController,
+                      controller: _controller,
+                      cursorColor: secondaryFontColor,
+                      onChanged: (value) =>
+                          chatController.isWriting.value = true,
+                      decoration: InputDecoration(
+                        fillColor: lightgreyColor,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        filled: true,
+                        hintText:
+                            isRecording ? 'Recording...' : 'Write your message',
+                        hintStyle: const TextStyle(
+                          color: greyColor,
+                          fontSize: 14,
+                          fontFamily: circularStdBook,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Obx(
+                    () => chatController.isWriting.value
+                        ? InkWell(
+                            onTap: () {
+                              log('inside send');
+                              if (_controller.text.isNotEmpty) {
+                                log('inside send if');
+                                _channel.sink.add(
+                                  jsonEncode({
+                                    'type': 'text_type',
+                                    'username': widget.username,
+                                    'message': _controller.text,
+                                  }),
+                                );
+                                log('message sent');
+                                scrollToBottom();
+                                chatController.isWriting.value = false;
+
+                                _controller.clear();
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.only(
+                                  left: 12, right: 8, top: 10, bottom: 10),
+                              decoration: BoxDecoration(
+                                color: primartColor,
+                                borderRadius: BorderRadius.circular(1000),
+                              ),
+                              child: const Icon(
+                                size: 20,
+                                Icons.send,
+                                color: whiteColor,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
-                ),
-                // const SizedBox(width: 20),
-              ],
-            ),
-          )
-        ],
+                          )
+                        : Row(
+                            children: [
+                              isRecording
+                                  ? Container()
+                                  : InkWell(
+                                      onTap: () {
+                                        chatController.pickImage(
+                                            context,
+                                            ImageSource.camera,
+                                            _channel,
+                                            widget.username);
+                                      },
+                                      child: const Icon(
+                                        CupertinoIcons.camera,
+                                        color: primaryFontColor,
+                                      ),
+                                    ),
+                              const SizedBox(width: 15),
+                              InkWell(
+                                onTap: () {
+                                  log('isRecording: $isRecording');
+                                  //vibrate
+                                  HapticFeedback.vibrate();
+                                  setState(() {
+                                    isRecording
+                                        ? stopRecording()
+                                        : startRecording();
+                                  });
+                                },
+                                child: Container(
+                                  padding: isRecording
+                                      ? const EdgeInsets.all(8.0)
+                                      : const EdgeInsets.all(0.0),
+                                  decoration: BoxDecoration(
+                                    color: isRecording
+                                        ? primartColor
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(1000),
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.mic,
+                                    color: isRecording
+                                        ? whiteColor
+                                        : primaryFontColor,
+                                    size: isRecording ? 30 : 25,
+                                    // fill: isRecording ? 10.0 : 0.0,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                          ),
+                  ),
+                  // const SizedBox(width: 20),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

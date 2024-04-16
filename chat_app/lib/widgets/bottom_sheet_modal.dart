@@ -102,7 +102,7 @@ Widget bottomModalSheet(
         ),
         ListTile(
           onTap: () {
-            chatController.filePicker(context);
+            chatController.filePicker(context, channel, username);
           },
           leading: Container(
             padding: const EdgeInsets.all(10),

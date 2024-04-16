@@ -1,20 +1,17 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:chat_app/models/chat_room/chat_room.dart';
 import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/models/user_model/user_model.dart';
 import 'package:chat_app/services/database_services.dart';
 import 'package:chat_app/utils/exports.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 class UserController extends GetxController {
   final authController = Get.find<AuthController>();
   final users = <User>[].obs;
 
-  final baseUrl = 'https://4077-119-73-114-193.ngrok-free.app/user';
+  // final baseUrl = '$baseUrl/user';
   final token = ''.obs;
   final isHomeSearch = false.obs;
   final contactSearchController = TextEditingController();
@@ -60,7 +57,7 @@ class UserController extends GetxController {
       };
       log('token: $token');
 
-      final url = Uri.parse('$baseUrl/list_of_user/');
+      final url = Uri.parse('$baseUrl/user/list_of_user/');
       final response = await http.get(url, headers: header);
 
       log(response.body);
@@ -80,7 +77,7 @@ class UserController extends GetxController {
       final header = {
         'Authorization': 'JWT $token',
       };
-      final url = Uri.parse('$baseUrl/list_of_user/?search=$value');
+      final url = Uri.parse('$baseUrl/user/list_of_user/?search=$value');
       final response = await http.get(url, headers: header);
 
       log(response.body);
@@ -100,7 +97,7 @@ class UserController extends GetxController {
       final header = {
         'Authorization': 'JWT $token',
       };
-      final url = Uri.parse('$baseUrl/list_of_user/?search=$value');
+      final url = Uri.parse('$baseUrl/user/list_of_user/?search=$value');
       final response = await http.get(url, headers: header);
 
       log(response.body);
@@ -120,7 +117,7 @@ class UserController extends GetxController {
       final header = {
         'Authorization': 'JWT $token',
       };
-      final url = Uri.parse('$baseUrl/friend-request/receive/');
+      final url = Uri.parse('$baseUrl/user/friend-request/receive/');
       final response = await http.get(url, headers: header);
       log('token: $token');
 
@@ -227,7 +224,7 @@ class UserController extends GetxController {
         final header = {
           'Authorization': 'JWT ${token.value}',
         };
-        final url = Uri.parse('https://4077-119-73-114-193.ngrok-free.app/chat/chatrooms/');
+        final url = Uri.parse('$baseUrl/chat/chatrooms/');
 
         final response = await http.get(url, headers: header);
 
@@ -291,7 +288,7 @@ class UserController extends GetxController {
   Future<void> sendFriendRequestNotification() async {
     try {
       final WebSocketChannel channel = WebSocketChannel.connect(
-        Uri.parse('ws://4077-119-73-114-193.ngrok-free.app/ws/notification/2/5/'),
+        Uri.parse('$webSocketUrl/ws/notification/2/5/'),
         // 'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/${toId.value}/${fromId.value}/'),
       );
       channel.stream.listen((event) {
@@ -394,23 +391,23 @@ class UserController extends GetxController {
       final header = {
         'Authorization': 'JWT $token',
       };
-      final url = Uri.parse('$baseUrl/friend_request/send/');
+      final url = Uri.parse('$baseUrl/user/friend_request/send/');
       final body = {'to_user': '$id'};
       toId.value = id.toString();
       fromId.value = authController.userid.toString();
       log('toId: $toId');
       log('fromId: $fromId');
-      // final response = await http.post(url, headers: header, body: body);
+      final response = await http.post(url, headers: header, body: body);
 
       await sendFriendRequestNotification();
-      // log(response.body);
-      // if (response.statusCode == 200) {
-      //   log('Friend request sent successfully');
-      //   Get.snackbar('Success', 'Friend request sent');
-      // } else {
-      //   log('Failed to send friend request');
-      //   throw 'Failed to load data';
-      // }
+      log(response.body);
+      if (response.statusCode == 200) {
+        log('Friend request sent successfully');
+        Get.snackbar('Success', 'Friend request sent');
+      } else {
+        log('Failed to send friend request');
+        throw 'Failed to load data';
+      }
     } catch (e) {
       log('Error in sending friend request: $e');
       throw 'Error: $e';
@@ -423,7 +420,7 @@ class UserController extends GetxController {
         'Authorization': 'JWT $token',
       };
 
-      final url = Uri.parse('$baseUrl/friend-request/accept/');
+      final url = Uri.parse('$baseUrl/user/friend-request/accept/');
       final body = {'from_user': '$id'};
       final response = await http.put(url, headers: header, body: body);
 
@@ -443,7 +440,7 @@ class UserController extends GetxController {
       final header = {
         'Authorization': 'JWT ${token.value}',
       };
-      final url = Uri.parse('$baseUrl/list_of_user/');
+      final url = Uri.parse('$baseUrl/user/list_of_user/');
       final response = await http.get(url, headers: header);
 
       log(response.body);

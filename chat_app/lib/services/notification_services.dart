@@ -1,12 +1,8 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui';
-import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -50,7 +46,7 @@ void onStart(ServiceInstance service) async {
 
     final fromId = decodedJsonData['fromId'];
     final toId = decodedJsonData['toId'];
-    final authId = decodedJsonData['authId'];
+    // final authId = decodedJsonData['authId'];
     log('fromId: $fromId');
     log('toId: $toId');
 
@@ -69,7 +65,7 @@ void onStart(ServiceInstance service) async {
     );
 
     final WebSocketChannel channel = WebSocketChannel.connect(
-      Uri.parse('ws://4077-119-73-114-193.ngrok-free.app/ws/notification/2/5/'),
+      Uri.parse('$webSocketUrl/ws/notification/2/5/'),
       // 'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/$toId/$fromId/'),
     );
 

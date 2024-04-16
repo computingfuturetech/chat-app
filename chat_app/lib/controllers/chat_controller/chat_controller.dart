@@ -1,14 +1,8 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:chat_app/models/chat_model/chat_model.dart';
-import 'package:chat_app/services/chat_message_database_service.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatController extends GetxController {
   //variables for image picker
@@ -26,12 +20,12 @@ class ChatController extends GetxController {
     checkCameraPermission();
     checkStoragePermission();
     Future.delayed(Duration.zero, () {
-    checkMicrophonePermission();
-  });
+      checkMicrophonePermission();
+    });
     localDatabaseService.initDatabase();
   }
 
-  final baseUrl = 'https://4077-119-73-114-193.ngrok-free.app/chat';
+  // final baseUrl = '$baseUrl/chat';
 
   checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -43,7 +37,8 @@ class ChatController extends GetxController {
   PermissionStatus? _permissionStatus;
 
   Future<void> checkStoragePermission() async {
-    if (_permissionStatus != null && _permissionStatus == PermissionStatus.granted) {
+    if (_permissionStatus != null &&
+        _permissionStatus == PermissionStatus.granted) {
       return; // Permission already granted, do nothing
     }
 
@@ -52,6 +47,11 @@ class ChatController extends GetxController {
     if (_permissionStatus == PermissionStatus.granted) {
       log('Storage Permission granted');
     } else if (_permissionStatus == PermissionStatus.denied) {
+      _permissionStatus = await Permission.storage.request();
+      _permissionStatus = await Permission.audio.request();
+      _permissionStatus = await Permission.camera.request();
+      _permissionStatus = await Permission.mediaLibrary.request();
+      _permissionStatus = await Permission.manageExternalStorage.request();
       log('Storage Permission denied');
     } else if (_permissionStatus == PermissionStatus.permanentlyDenied) {
       log('Storage Permission permanently denied, guide user to settings');
@@ -59,21 +59,21 @@ class ChatController extends GetxController {
     }
   }
 
- checkMicrophonePermission() async {
-  var status = await Permission.microphone.status;
+  checkMicrophonePermission() async {
+    var status = await Permission.microphone.status;
 
-  if (status.isDenied) {
-    final newStatus = await Permission.microphone.request();
-    if (newStatus.isGranted) {
-      // Permission granted, continue with your logic here
-    } else if (newStatus.isPermanentlyDenied) {
-      // Guide user to app settings
-      openAppSettings();
+    if (status.isDenied) {
+      final newStatus = await Permission.microphone.request();
+      if (newStatus.isGranted) {
+        // Permission granted, continue with your logic here
+      } else if (newStatus.isPermanentlyDenied) {
+        // Guide user to app settings
+        openAppSettings();
+      }
+    } else if (status.isGranted) {
+      // Permission already granted, continue with your logic here
     }
-  } else if (status.isGranted) {
-    // Permission already granted, continue with your logic here
   }
-}
 
   pickImage(context, source, channel, username) async {
     // Request permissions
@@ -123,7 +123,7 @@ class ChatController extends GetxController {
       final bytes = await file.readAsBytes();
 
       // Convert bytes to Uint8List
-      final imageBytes = Uint8List.fromList(bytes);
+      // final imageBytes = Uint8List.fromList(bytes);
 
       // Send the image as a binary message
       channel.sink.add(jsonEncode(
@@ -134,7 +134,7 @@ class ChatController extends GetxController {
     }
   }
 
-  filePicker(context) async {
+  filePicker(context, channel, username) async {
     var status = await Permission.storage.request();
     if (status.isDenied) {
       log('inside file picker');
@@ -148,10 +148,17 @@ class ChatController extends GetxController {
     if (result != null) {
       File file = File(result.files.single.path!);
 
-      final bytes = await file.readAsBytes();
+      final extension = file.path.split('.').last;
 
-      channel.sink.add(jsonEncode(
-          {'type': 'media_type', 'username': 'username', 'message': bytes}));
+      final bytes = await file.readAsBytes();
+      log('bytes: $bytes');
+
+      channel.sink.add(jsonEncode({
+        'type': 'media_type',
+        'username': username,
+        'message': bytes,
+        'extension': extension
+      }));
       imgpath.value = result.files.single.path!;
       imglink.value = '';
       Get.snackbar('', 'Image Selected');
@@ -176,14 +183,38 @@ class ChatController extends GetxController {
       File file = File(result.files.single.path!);
       final bytes = await file.readAsBytes();
 
+      final extension = file.path.split('.').last;
+
       // log('bytes: $bytes');
 
-      channel.sink.add(jsonEncode(
-          {'type': 'document_type', 'username': username, 'message': bytes}));
+      channel.sink.add(jsonEncode({
+        'type': 'document_type',
+        'username': username,
+        'message': bytes,
+        'extension': extension
+      }));
       imglink.value = '';
       Get.snackbar('', 'Document Selected');
     } else {
       Get.snackbar('', 'No Document Selected');
+    }
+  }
+
+  sendMedia(channel, mediaPath, username) async {
+    try {
+      // Read the image file as bytes
+      final file = File(mediaPath);
+      final bytes = await file.readAsBytes();
+
+      // Convert bytes to Uint8List
+      // final imageBytes = Uint8List.fromList(bytes);
+
+      // Send the image as a binary message
+      channel.sink.add(jsonEncode(
+          {'type': 'media_type', 'username': username, 'message': bytes}));
+      // channel.sink.add(jsonEncode({'type': 'image_type', 'image': 'bytes'}));
+    } catch (e) {
+      log('Error sending image: $e');
     }
   }
 
