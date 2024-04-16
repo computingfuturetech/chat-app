@@ -29,5 +29,5 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model=ChatMessage
-        fields=['user','message','image','video','document','audio_file']
+        fields=['user','message','image','document','audio_file']
     

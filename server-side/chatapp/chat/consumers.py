@@ -11,62 +11,6 @@ import io
 import base64
 import magic
 
-def detect_document_type(document_data):
-    document_bytes = bytes(document_data)
-    m = magic.Magic()
-    file_type = m.from_buffer(document_bytes)
-
-    if "PDF document" in file_type:
-        return "pdf"
-    elif "Microsoft PowerPoint" in file_type:
-        return "ppt"
-    elif "Composite Document File" in file_type:
-        return "doc"
-    elif "Audio file with ID3" in file_type:
-        return "mp3"
-    elif "Audio file with MIME" in file_type:
-        return "m4a"
-    elif "JPEG image data" in file_type:
-        return "jpeg"
-    elif "PNG image data" in file_type:
-        return "png"
-    elif "GIF image data" in file_type:
-        return "gif"
-    elif "TIFF image data" in file_type:
-        return "tiff"
-    elif "BMP image data" in file_type:
-        return "bmp"
-    elif "ICO image data" in file_type:
-        return "ico"
-    elif "ZIP archive data" in file_type:
-        return "zip"
-    elif "RAR archive data" in file_type:
-        return "rar"
-    elif "7z archive data" in file_type:
-        return "7z"
-    elif "MP4 video" in file_type:
-        return "mp4"
-    elif "MKV video" in file_type:
-        return "mkv"
-    elif "MOV video" in file_type:
-        return "mov"
-    elif "FLV video" in file_type:
-        return "flv"
-    elif "OGG video" in file_type:
-        return "ogg"
-    elif "JSON data" in file_type:
-        return "json"
-    elif "XML document text" in file_type:
-        return "xml"
-    elif "HTML document" in file_type:
-        return "html"
-    elif "CSV text" in file_type:
-        return "csv"
-    elif "PowerPoint Open XML document" in file_type:
-        return "pptx"
-    else:
-        return "unknown"
-
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['roomId']
@@ -98,8 +42,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message_type = text_data_json.get('type')
             username = text_data_json.get('username')
             chat_room = await self.get_chat_room()
-            
-            # print(text_data_json)
             if message_type == 'text_type':
                 await self.handle_text_message(text_data_json, username, chat_room)
             elif message_type == 'image_type':
@@ -108,6 +50,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.handle_audio_message(text_data_json, username, chat_room)
             elif message_type == 'document_type':
                 await self.handle_document_message(text_data_json, username, chat_room)
+            elif message_type == 'media_type':
+                await self.handle_media_message(text_data_json, username, chat_room)
 
         except json.JSONDecodeError:
             return
@@ -123,7 +67,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_text_message(self, data, username, chat_room):
         message = data.get('message')
-        print(message)
         user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
         chat_message = await sync_to_async(ChatMessage.objects.create)(
             chat=chat_room,
@@ -135,7 +78,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_image_message(self, data, username, chat_room):
         image_data = data.get('message')
-        print(image_data)
         if image_data:
             image_bytes = bytes(image_data)
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
@@ -153,13 +95,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def handle_audio_message(self, data, username, chat_room):
         try:
             audio_data = data.get('message')
-            print(audio_data)
             if audio_data:
                 audio_bytes = bytes(audio_data)
                 audio_format = "wav"  
-                audio_file_content = ContentFile(audio_bytes, name='temp.m4a')
-                # with open(audio_file_path, "wb") as audio_file:
-                #     audio_file.write(audio_bytes)
+                audio_file_content = ContentFile(audio_bytes, name='temp.mp3')
                 user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
                 chat_message = await sync_to_async(ChatMessage.objects.create)(
                     chat=chat_room,
@@ -169,18 +108,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 audio_url = f"/media/{chat_message.audio_file}"
                 timestamp = chat_message.timestamp
                 await self.send_chat_message(username, audio_url, timestamp, 'audio_type')
-                print('Audio message sent successfully')
         except Exception as e:
             print(f"Error handling audio message: {e}")
 
     async def handle_document_message(self, data, username, chat_room):
         document_data = data.get('message')
-        print(document_data)
-        if document_data:
-            document_type = detect_document_type(document_data)
-            print(document_type)
-            document_bytes = bytes(document_data)
-            document_format = document_type  
+        document_type = data.get('extension')
+        if document_data and document_type:
+            document_bytes = bytes(document_data) 
             document_file_content = ContentFile(document_bytes, name=f"temp.{document_type}" )
             user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
             chat_message = await sync_to_async(ChatMessage.objects.create)(
@@ -191,6 +126,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             document_url = f"/media/{chat_message.document}"
             timestamp = chat_message.timestamp
             await self.send_chat_message(username, document_url, timestamp, 'document_type')
+    
+    async def handle_media_message(self, data, username, chat_room):
+        recieved_data = data.get('message')
+        data_type = data.get('extension')
+        if recieved_data and data_type:
+            data_bytes = bytes(recieved_data)
+            media_file_content = ContentFile(data_bytes, name=f"temp.{data_type}" )
+            user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
+            chat_message = await sync_to_async(ChatMessage.objects.create)(
+                chat=chat_room,
+                user=user,
+                media=media_file_content
+            )
+            media_url = f"/media/{chat_message.media}"
+            timestamp = chat_message.timestamp
+            if data_type and data_type[0] in ['m', 'a', 'f']:
+                await self.send_chat_message(username, media_url, timestamp, 'video_type')
+            else:
+                await self.send_chat_message(username, media_url, timestamp, 'image_type')
 
     async def send_chat_message(self, username, content, timestamp, message_type):
         await self.channel_layer.group_send(
