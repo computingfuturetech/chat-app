@@ -94,7 +94,7 @@ class ChangePasswordViewSet(generics.UpdateAPIView):
             response_data={
                 'status':'Successfully Change password'
             }
-            return Response(response_data)
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

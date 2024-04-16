@@ -22,11 +22,11 @@ def user_document_path(instance, filename):
     new_filename = f"{unique_filename}{file_extension}"
     return os.path.join('store/documents', new_filename)
 
-def user_video_path(instance, filename):
+def user_media_path(instance, filename):
     unique_filename = f"{uuid.uuid4().hex}"
     _, file_extension = os.path.splitext(filename)
     new_filename = f"{unique_filename}{file_extension}"
-    return os.path.join('store/videos', new_filename)
+    return os.path.join('store/media', new_filename)
 
 class ChatRoom(models.Model):
     ONE_TO_ONE = 'one_to_one'
@@ -50,8 +50,7 @@ class ChatMessage(models.Model):
     audio_file = models.FileField(upload_to=user_voicemessages_path, blank=True, null=True)
     image = models.ImageField(upload_to=user_image_path, blank=True, null=True)
     document = models.FileField(upload_to=user_document_path, blank=True, null=True)
-    video=models.FileField(upload_to=user_video_path,blank=True,null=True)
-    duration_seconds = models.PositiveIntegerField(blank=True, null=True)
+    media=models.FileField(upload_to=user_media_path,blank=True,null=True)
     timestamp = models.TimeField(auto_now_add=True)
     datestamp = models.DateField(auto_now_add=True)
 
