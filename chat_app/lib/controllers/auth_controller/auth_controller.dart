@@ -507,7 +507,7 @@ class AuthController extends GetxController {
     if (notificationPermission.isGranted) {
       await flutterLocalNotificationsPlugin.initialize(
         const InitializationSettings(
-          android: AndroidInitializationSettings('app_icon'),
+          android: AndroidInitializationSettings(logo),
         ),
       );
     } else {
