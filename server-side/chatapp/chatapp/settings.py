@@ -91,6 +91,7 @@ MIDDLEWARE = [
 
 CRONJOBS = [
     ('*/1 * * * *', 'user.cron.delete_otp'),
+    ('*/1 * * * *', 'user.cron.delete_previous_messages'),
 ]
 
 CORS_ALLOWED_ORIGINS = [

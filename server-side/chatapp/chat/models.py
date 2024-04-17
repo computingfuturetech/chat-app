@@ -5,25 +5,25 @@ import os
 import uuid
 
 def user_voicemessages_path(instance, filename):
-    unique_filename = f"{uuid.uuid4().hex}"
+    unique_filename = f"chatbox_{uuid.uuid4().hex}"
     _, file_extension = os.path.splitext(filename)
     new_filename = f"{unique_filename}{file_extension}"
     return os.path.join('store/voice_messages', new_filename)
 
 def user_image_path(instance, filename):
-    unique_filename = f"{uuid.uuid4().hex}"
+    unique_filename = f"chatbox_{uuid.uuid4().hex}"
     _, file_extension = os.path.splitext(filename)
     new_filename = f"{unique_filename}{file_extension}"
     return os.path.join('store/chat/images', new_filename)
 
 def user_document_path(instance, filename):
-    unique_filename = f"{uuid.uuid4().hex}"
-    _, file_extension = os.path.splitext(filename)
-    new_filename = f"{unique_filename}{file_extension}"
+    unique_filename = f"chatbox{uuid.uuid4().hex}"
+    file_name = os.path.basename(filename)
+    new_filename = f"{unique_filename}-{file_name}"
     return os.path.join('store/documents', new_filename)
 
 def user_media_path(instance, filename):
-    unique_filename = f"{uuid.uuid4().hex}"
+    unique_filename = f"chatbox_{uuid.uuid4().hex}"
     _, file_extension = os.path.splitext(filename)
     new_filename = f"{unique_filename}{file_extension}"
     return os.path.join('store/media', new_filename)
