@@ -4,12 +4,8 @@ from .models import ChatRoom, ChatMessage
 from user.models import User,FriendRequest
 from django.contrib.auth import get_user_model
 from asgiref.sync import sync_to_async
-from django.utils import timezone
 from django.core.files.base import ContentFile
-from PIL import Image
-import io
 import base64
-import magic
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -114,10 +110,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def handle_document_message(self, data, username, chat_room):
         document_data = data.get('message')
         document_type = data.get('extension')
-        if document_data and document_type:
+        file_name = data.get('name')
+        if document_data and document_type and file_name:
             document_bytes = bytes(document_data) 
-            document_file_content = ContentFile(document_bytes, name=f"temp.{document_type}" )
             user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
+            document_file_content = ContentFile(document_bytes, name=f"{user.id}-{file_name}" )
             chat_message = await sync_to_async(ChatMessage.objects.create)(
                 chat=chat_room,
                 user=user,
@@ -142,7 +139,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             media_url = f"/media/{chat_message.media}"
             timestamp = chat_message.timestamp
             if data_type and data_type[0] in ['m', 'a', 'f']:
-                await self.send_chat_message(username, media_url, timestamp, 'video_type')
+                if data_type in ['avif']:
+                    await self.send_chat_message(username, media_url, timestamp, 'image_type')
+                else:
+                    await self.send_chat_message(username, media_url, timestamp, 'video_type')
             else:
                 await self.send_chat_message(username, media_url, timestamp, 'image_type')
 
@@ -232,7 +232,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def send_friend_request(self, message, message_type):
         try:
-            # Extract recipient user ID from message or context
             recipient_user_id = self.from_user_id
             if recipient_user_id:
                 print('ok')
@@ -242,7 +241,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                         'type': 'chat_message',
                         'message': message,
                         'message_type': message_type,
-                        'recipient_user_id': recipient_user_id,  # Include recipient user ID
+                        'recipient_user_id': recipient_user_id,
                     }
                 )
         except Exception as e:

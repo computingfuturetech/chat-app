@@ -40,6 +40,23 @@ class UserChatRoomsAPIView(APIView):
                         'user_id': last_message.user_id,
                         'timestamp': last_message.timestamp
                     }
+                elif last_message.media:
+                    file_extension = last_message.media.name.split('.')[-1]
+                    is_video = file_extension[0] in ['m', 'a', 'f']
+                    media_type ='image'
+                    if is_video:
+                        if is_video in ['avi']:
+                             media_type = 'image'
+                        else:
+                             media_type ='video'
+                    else:
+                         media_type ='image'
+
+                    data['last_message'] = {
+                        'message': media_type,
+                        'user_id': last_message.user_id,
+                        'timestamp': last_message.timestamp
+                    }
                 else:
                     data['last_message'] = {
                         'message': last_message.message,
@@ -74,3 +91,11 @@ class ChatRoomView(APIView):
 
 class MessagesView(ListAPIView):
 	serializer_class = ChatMessageSerializer
+
+
+
+        
+
+
+
+        
