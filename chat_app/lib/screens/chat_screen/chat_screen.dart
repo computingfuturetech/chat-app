@@ -3,12 +3,29 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:chat_app/main.dart';
 import 'package:chat_app/screens/chat_screen/video_player_screen.dart';
+import 'package:chat_app/services/notification_service.dart';
 import 'package:chat_app/utils/exports.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
+import 'package:http/http.dart' as http;
+
+/// Message route arguments.
+class MessageArguments {
+  /// The RemoteMessage
+  final RemoteMessage message;
+
+  /// Whether this message caused the application to open.
+  final bool openedApplication;
+
+  // ignore: public_member_api_docs
+  MessageArguments(this.message, this.openedApplication);
+}
 
 class ChatScreen extends StatefulWidget {
   final image, username, chatRoomId, secondUserId;
@@ -40,6 +57,10 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isAudioPlayerInitialized = false; // Add this flag
   late VideoPlayerController _videoPlayerController;
 
+  String? _token;
+  String? initialMessage;
+  bool _resolved = false;
+
   @override
   void initState() {
     log('isRecording: $isRecording');
@@ -61,7 +82,40 @@ class _ChatScreenState extends State<ChatScreen> {
           isAudioPlayerInitialized = true;
         });
       });
-    _channel.stream.listen((event) {
+
+    FirebaseMessaging.instance.getInitialMessage().then(
+          (value) => setState(
+            () {
+              _resolved = true;
+              initialMessage = value?.data.toString();
+            },
+          ),
+        );
+
+    FirebaseMessaging.onMessage.listen(showFlutterNotification);
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      log('A new onMessageOpenedApp event was published!');
+      Navigator.pushNamed(
+        context,
+        '/message',
+        arguments: MessageArguments(message, true),
+      );
+    });
+    _channel.stream.listen((event) async {
+      // final token = await FirebaseMessaging.instance.getToken();
+      // await FirebaseMessaging.instance.sendMessage(
+      //   to: token,
+      //   // notification: jsonEncode({
+      //   //   'title': 'New Message',
+      //   //   'body': 'You have a new message in your chat app!',
+      //   // }),
+      //   data: {
+      //     'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+      //     'id': '1',
+      //     'status': 'done',
+      //   },
+      // );
       var data = json.decode(event);
       log('data1122: $data');
       userId = data['user_id'];
@@ -78,9 +132,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 timestamp: DateTime.now()))
             .then((value) {
           // updateListKey();
-          scrollToBottom();
           setState(
             () {
+              scrollToBottom();
               log('userid1:sd $ChatMessage');
             },
           );
@@ -105,6 +159,71 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       return;
     });
+  }
+
+  Future<void> sendPushMessage() async {
+    _token = await NotificationService().getFCMToken();
+
+    if (_token == null) {
+      log('Unable to send FCM message, no token exists.');
+      return;
+    }
+
+    try {
+      await http.post(
+        Uri.parse('https://api.rnfirebase.io/messaging/send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: constructFCMPayload(_token),
+      );
+      log('FCM request for device sent!');
+    } catch (e) {
+      log(e.toString());
+    }
+  }
+
+  Future<void> onActionSelected(String value) async {
+    switch (value) {
+      case 'subscribe':
+        {
+          log(
+            'FlutterFire Messaging Example: Subscribing to topic "fcm_test".',
+          );
+          await FirebaseMessaging.instance.subscribeToTopic('fcm_test');
+          log(
+            'FlutterFire Messaging Example: Subscribing to topic "fcm_test" successful.',
+          );
+        }
+        break;
+      case 'unsubscribe':
+        {
+          log(
+            'FlutterFire Messaging Example: Unsubscribing from topic "fcm_test".',
+          );
+          await FirebaseMessaging.instance.unsubscribeFromTopic('fcm_test');
+          log(
+            'FlutterFire Messaging Example: Unsubscribing from topic "fcm_test" successful.',
+          );
+        }
+        break;
+      case 'get_apns_token':
+        {
+          if (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.macOS) {
+            log('FlutterFire Messaging Example: Getting APNs token...');
+            String? token = await FirebaseMessaging.instance.getAPNSToken();
+            log('FlutterFire Messaging Example: Got APNs token: $token');
+          } else {
+            log(
+              'FlutterFire Messaging Example: Getting an APNs token is only supported on iOS and macOS platforms.',
+            );
+          }
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   @override
@@ -682,6 +801,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           );
                         } else if (image.toString() == 'document_type') {
                           //document preview ui
+                          final parts = message.split('/').last;
+                          final fileName = parts.split('-').last;
                           return Align(
                             alignment: sender == 'Me'
                                 ? Alignment.centerRight
@@ -718,20 +839,24 @@ class _ChatScreenState extends State<ChatScreen> {
                                             : chatCardColor,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
                                         children: [
                                           Text(
-                                            'Document',
-                                            style: TextStyle(
+                                            fileName,
+                                            maxLines: 1,
+                                            softWrap: true,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
                                               color: whiteColor,
                                               fontSize: 14,
                                               fontFamily: circularStdBook,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                          Spacer(),
-                                          Icon(
+                                          const Spacer(),
+                                          const Icon(
                                             Icons.download,
                                             color: whiteColor,
                                           ),
@@ -892,13 +1017,14 @@ class _ChatScreenState extends State<ChatScreen> {
                               log('inside send');
                               if (_controller.text.isNotEmpty) {
                                 log('inside send if');
-                                _channel.sink.add(
-                                  jsonEncode({
-                                    'type': 'text_type',
-                                    'username': widget.username,
-                                    'message': _controller.text,
-                                  }),
-                                );
+                                // _channel.sink.add(
+                                //   jsonEncode({
+                                //     'type': 'text_type',
+                                //     'username': widget.username,
+                                //     'message': _controller.text,
+                                //   }),
+                                // );
+                                sendPushMessage();
                                 log('message sent');
                                 scrollToBottom();
                                 chatController.isWriting.value = false;

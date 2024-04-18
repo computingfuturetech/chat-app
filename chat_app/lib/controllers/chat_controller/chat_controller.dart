@@ -184,6 +184,7 @@ class ChatController extends GetxController {
       final bytes = await file.readAsBytes();
 
       final extension = file.path.split('.').last;
+      final fileName = file.path.split('/').last;
 
       // log('bytes: $bytes');
 
@@ -191,7 +192,8 @@ class ChatController extends GetxController {
         'type': 'document_type',
         'username': username,
         'message': bytes,
-        'extension': extension
+        'extension': extension,
+        'name': fileName,
       }));
       imglink.value = '';
       Get.snackbar('', 'Document Selected');

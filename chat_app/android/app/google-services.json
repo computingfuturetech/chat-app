@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "360658613358",
+    "project_id": "chat-box-cft",
+    "storage_bucket": "chat-box-cft.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:360658613358:android:2e28e521ca8a08de71227f",
+        "android_client_info": {
+          "package_name": "com.computingfuturetech.chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjK0Eu0CMXHnnly7BeDqvFXOwRie4EEaE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
