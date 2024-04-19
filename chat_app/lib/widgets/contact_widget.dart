@@ -1,10 +1,35 @@
+import 'dart:developer';
+
+import 'package:chat_app/main.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
 
 Widget contactUser(
   user,
   userController,
 ) {
+  String? token0;
+
+  Future<void> sendPushMessage() async {
+    token0 = await NotificationService().getFCMToken();
+        if (token0 == null) {
+      return;
+    }
+
+    try {
+      await http.post(
+        Uri.parse('https://api.rnfirebase.io/messaging/send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: constructFCMPayload(token0),
+      );
+    } catch (e) {
+      log(e.toString());
+    }
+  }
+
   return Column(
     children: [
       Container(
@@ -65,6 +90,7 @@ Widget contactUser(
               iconSize: 20,
               onPressed: () {
                 userController.sendFriendRequest(user.id!);
+                sendPushMessage();
               },
               icon: const Icon(CupertinoIcons.person_add),
             ),

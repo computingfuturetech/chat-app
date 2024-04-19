@@ -1,8 +1,6 @@
 
 import 'package:chat_app/controllers/user_controller/user_controller.dart';
-import 'package:chat_app/models/user_model/user_model.dart';
 import 'package:chat_app/utils/exports.dart';
-import 'package:chat_app/widgets/contact_widget.dart';
 import 'package:chat_app/widgets/search_appbar.dart';
 
 class ContactSearchScreen extends StatelessWidget {

@@ -1,11 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:chat_app/utils/exports.dart';
-import 'package:file_picker/file_picker.dart';
 
 class ChatController extends GetxController {
-  //variables for image picker
   var imgpath = ''.obs;
   var imglink = ''.obs;
   var token = ''.obs;
@@ -25,8 +22,6 @@ class ChatController extends GetxController {
     localDatabaseService.initDatabase();
   }
 
-  // final baseUrl = '$baseUrl/chat';
-
   checkCameraPermission() async {
     var status = await Permission.camera.status;
     if (status.isDenied) {
@@ -45,16 +40,13 @@ class ChatController extends GetxController {
     _permissionStatus = await Permission.storage.request();
 
     if (_permissionStatus == PermissionStatus.granted) {
-      log('Storage Permission granted');
     } else if (_permissionStatus == PermissionStatus.denied) {
       _permissionStatus = await Permission.storage.request();
       _permissionStatus = await Permission.audio.request();
       _permissionStatus = await Permission.camera.request();
       _permissionStatus = await Permission.mediaLibrary.request();
       _permissionStatus = await Permission.manageExternalStorage.request();
-      log('Storage Permission denied');
     } else if (_permissionStatus == PermissionStatus.permanentlyDenied) {
-      log('Storage Permission permanently denied, guide user to settings');
       openAppSettings();
     }
   }
@@ -75,7 +67,7 @@ class ChatController extends GetxController {
     }
   }
 
-  pickImage(context, source, channel, username) async {
+  pickImage(context, source, channel, username, secondUserId) async {
     // Request permissions
 
     // await Permission.photos.request();
@@ -84,8 +76,6 @@ class ChatController extends GetxController {
 
     // var status = await Permission.camera.status;
     // Check permission status
-
-    log('inside pick image ${status.isGranted}');
 
     // Handle status
     if (status.isGranted) {
@@ -100,7 +90,7 @@ class ChatController extends GetxController {
         }
 
         imgpath.value = img.path;
-        sendImage(channel, img.path, username);
+        sendImage(channel, img.path, username, secondUserId);
         // VxToast.show(context, msg: "Image selected");
         Get.snackbar('', 'Image Selected');
       } on PlatformException catch (e) {
@@ -116,7 +106,7 @@ class ChatController extends GetxController {
     }
   }
 
-  sendImage(channel, imagePath, username) async {
+  sendImage(channel, imagePath, username, secondUserId) async {
     try {
       // Read the image file as bytes
       final file = File(imagePath);
@@ -126,22 +116,24 @@ class ChatController extends GetxController {
       // final imageBytes = Uint8List.fromList(bytes);
 
       // Send the image as a binary message
-      channel.sink.add(jsonEncode(
-          {'type': 'image_type', 'username': username, 'message': bytes}));
+      channel.sink.add(jsonEncode({
+        'type': 'image_type',
+        'username': username,
+        'message': bytes,
+        'toID': secondUserId,
+      }));
       // channel.sink.add(jsonEncode({'type': 'image_type', 'image': 'bytes'}));
     } catch (e) {
       log('Error sending image: $e');
     }
   }
 
-  filePicker(context, channel, username) async {
+  filePicker(context, channel, username, secondUserId) async {
     var status = await Permission.storage.request();
     if (status.isDenied) {
-      log('inside file picker');
       // await openAppSettings();
       status = await Permission.storage.request();
     }
-    log('inside file picker else');
     final result = await FilePicker.platform.pickFiles(
       type: FileType.media,
     );
@@ -151,13 +143,13 @@ class ChatController extends GetxController {
       final extension = file.path.split('.').last;
 
       final bytes = await file.readAsBytes();
-      log('bytes: $bytes');
 
       channel.sink.add(jsonEncode({
         'type': 'media_type',
         'username': username,
         'message': bytes,
-        'extension': extension
+        'extension': extension,
+        'toID': secondUserId,
       }));
       imgpath.value = result.files.single.path!;
       imglink.value = '';
@@ -167,14 +159,12 @@ class ChatController extends GetxController {
     }
   }
 
-  documentPicker(context, channel, username) async {
+  documentPicker(context, channel, username, secondUserId) async {
     var status = await Permission.storage.request();
     if (status.isDenied) {
-      log('inside file picker');
       // await openAppSettings();
       status = await Permission.storage.request();
     }
-    log('inside file picker else');
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
     );
@@ -194,6 +184,7 @@ class ChatController extends GetxController {
         'message': bytes,
         'extension': extension,
         'name': fileName,
+        'toID': secondUserId,
       }));
       imglink.value = '';
       Get.snackbar('', 'Document Selected');
@@ -202,23 +193,23 @@ class ChatController extends GetxController {
     }
   }
 
-  sendMedia(channel, mediaPath, username) async {
-    try {
-      // Read the image file as bytes
-      final file = File(mediaPath);
-      final bytes = await file.readAsBytes();
+  // sendMedia(channel, mediaPath, username) async {
+  //   try {
+  //     // Read the image file as bytes
+  //     final file = File(mediaPath);
+  //     final bytes = await file.readAsBytes();
 
-      // Convert bytes to Uint8List
-      // final imageBytes = Uint8List.fromList(bytes);
+  //     // Convert bytes to Uint8List
+  //     // final imageBytes = Uint8List.fromList(bytes);
 
-      // Send the image as a binary message
-      channel.sink.add(jsonEncode(
-          {'type': 'media_type', 'username': username, 'message': bytes}));
-      // channel.sink.add(jsonEncode({'type': 'image_type', 'image': 'bytes'}));
-    } catch (e) {
-      log('Error sending image: $e');
-    }
-  }
+  //     // Send the image as a binary message
+  //     channel.sink.add(jsonEncode(
+  //         {'type': 'media_type', 'username': username, 'message': bytes}));
+  //     // channel.sink.add(jsonEncode({'type': 'image_type', 'image': 'bytes'}));
+  //   } catch (e) {
+  //     log('Error sending image: $e');
+  //   }
+  // }
 
   getToken() async {
     SharedPreferences.getInstance().then((prefs) {
@@ -302,7 +293,7 @@ class ChatController extends GetxController {
   @override
   void onClose() {
     messageController.dispose();
-    channel.sink.close();
+    // channel.sink.close();
     super.onClose();
   }
 }

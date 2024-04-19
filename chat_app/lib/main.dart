@@ -2,24 +2,16 @@ import 'dart:developer';
 
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/services/database_services.dart';
-import 'package:chat_app/services/notification_service.dart';
-import 'package:chat_app/services/notification_services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// To verify that your messages are being received, you ought to see a notification appearon your device/emulator via the flutter_local_notifications plugin.
-/// Define a top-level named handler which background/terminated messages will
-/// call. Be sure to annotate the handler with `@pragma('vm:entry-point')` above the function declaration.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await setupFlutterNotifications();
   showFlutterNotification(message);
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
   log('Handling a background message ${message.messageId}');
 }
 
@@ -33,7 +25,7 @@ Future<void> setupFlutterNotifications() async {
     return;
   }
   channel = const AndroidNotificationChannel(
-    'high_importance_channel', // id
+    'high_importancechannel', // id
     'High Importance Notifications', // title
     description:
         'This channel is used for important notifications.', // description
@@ -61,25 +53,81 @@ Future<void> setupFlutterNotifications() async {
   isFlutterLocalNotificationsInitialized = true;
 }
 
-void showFlutterNotification(RemoteMessage message) {
+void showFlutterNotification(
+  RemoteMessage message, {
+  channel,
+  localStorage,
+  userId,
+  authController,
+  widget,
+}) {
   RemoteNotification? notification = message.notification;
   AndroidNotification? android = message.notification?.android;
   if (notification != null && android != null && !kIsWeb) {
-    flutterLocalNotificationsPlugin.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          channel.id,
-          channel.name,
-          channelDescription: channel.description,
-          // TODO add a proper drawable resource to android, for now using
-          //      one that already exists in example app.
-          icon: 'launch_background',
+    if (notification.title.toString() != 'Friend Request') {
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            // TODO add a proper drawable resource to android, for now using
+            //      one that already exists in example app.
+            icon: 'launch_background',
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      channel.stream.listen((event) async {
+        var data = json.decode(event);
+        log('data1122: $data');
+        userId = data['user_id'];
+        log('sender1: $userId');
+        if (userId.toString() != authController.userid.toString()) {
+          log('user1122: $userId authController.userid: ${authController.userid}');
+          log('user1122 not same');
+          localStorage
+              .insertMessage(ChatMessage(
+                  id: DateTime.now().millisecondsSinceEpoch,
+                  chatRoomId: widget.chatRoomId,
+                  content: event.toString(),
+                  sender: 'Other',
+                  timestamp: DateTime.now()))
+              .then((value) {
+            // updateListKey();
+          });
+        } else {
+          log('user1122 same');
+          localStorage
+              .insertMessage(ChatMessage(
+                  id: DateTime.now().millisecondsSinceEpoch,
+                  chatRoomId: widget.chatRoomId,
+                  content: event.toString(),
+                  sender: 'Me',
+                  timestamp: DateTime.now()))
+              .then((value) {});
+        }
+        return;
+      });
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            // TODO add a proper drawable resource to android, for now using
+            //      one that already exists in example app.
+            icon: 'launch_background',
+          ),
+        ),
+      );
+    }
   }
 }
 

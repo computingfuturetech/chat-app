@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,7 +8,6 @@ class SettingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var controller = Get.put(AuthController());
-    log("Image from ${controller.image.value}");
     return Scaffold(
       backgroundColor: primaryFontColor,
       appBar: PreferredSize(

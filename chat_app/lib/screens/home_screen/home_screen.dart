@@ -1,11 +1,8 @@
-import 'dart:developer';
-
 import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/models/chat_room/chat_room.dart';
 import 'package:chat_app/screens/home_screen/search_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/home_screen_users.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UserController());
-    final authController = Get.put(AuthController()); 
+    final authController = Get.put(AuthController());
     return Scaffold(
       backgroundColor: primaryFontColor,
       appBar: PreferredSize(
@@ -57,7 +54,6 @@ class HomeScreen extends StatelessWidget {
                 child: StreamBuilder<List<Chatroom>>(
                   stream: controller.fetchChatRoomsData(),
                   builder: (context, snapshot) {
-                    log('snapshot: ${snapshot.data}');
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SpinKitFadingCircle(
                         color: greenColor,

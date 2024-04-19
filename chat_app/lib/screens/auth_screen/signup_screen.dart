@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:chat_app/utils/exports.dart';
 
 class SignUpScreen extends StatelessWidget {
@@ -16,7 +14,6 @@ class SignUpScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        // resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -24,8 +21,6 @@ class SignUpScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  // physics: const BouncingScrollPhysics(),
-                  // shrinkWrap: true,
                   children: [
                     Column(
                       children: [
@@ -137,7 +132,6 @@ class SignUpScreen extends StatelessWidget {
                       title: createAccount,
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
-                          log('Signup');
                           controller.signup();
                         }
                       },

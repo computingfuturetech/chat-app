@@ -9,7 +9,6 @@ class SplashScreen extends StatelessWidget {
     final authController = Get.put(AuthController());
     Timer(const Duration(seconds: 1), () {
       SharedPreferences.getInstance().then((prefs) {
-        // final bool? isOnboardingDone = prefs.getBool('isOnboardingDone');
         final String token = prefs.getString('token') ?? '';
         if (prefs.getString('token') != null && token.isNotEmpty) {
           Get.offAll(() => const Home(), transition: Transition.zoom);
@@ -18,7 +17,6 @@ class SplashScreen extends StatelessWidget {
               transition: Transition.zoom);
         }
       });
-      // Get.offAll(() => const Home(), transition: Transition.zoom);
     });
 
     
