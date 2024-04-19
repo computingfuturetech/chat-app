@@ -1,10 +1,7 @@
-import 'package:chat_app/models/user_model/user_model.dart';
-import 'package:chat_app/screens/contact_screen/search_screen.dart';
-import 'package:chat_app/widgets/contact_widget.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:chat_app/controllers/user_controller/user_controller.dart';
+import 'package:chat_app/screens/contact_screen/search_screen.dart';
 import 'package:chat_app/utils/exports.dart';
+import 'package:flutter/cupertino.dart';
 
 class ContactScreen extends StatelessWidget {
   const ContactScreen({super.key});

@@ -60,3 +60,17 @@ export 'package:record/record.dart';
 export 'package:path_provider/path_provider.dart';
 export 'package:open_file/open_file.dart';
 export 'package:fluttertoast/fluttertoast.dart';
+
+
+
+export 'package:chat_app/services/notification_service.dart';
+export 'package:google_sign_in/google_sign_in.dart';
+export 'package:path/path.dart';
+export 'package:sqflite/sqflite.dart';
+export 'package:file_picker/file_picker.dart';
+
+
+export 'package:chat_app/models/user_model/user_model.dart';
+export 'package:chat_app/widgets/contact_widget.dart';
+export 'package:flutter/foundation.dart';
+export 'package:flutter_spinkit/flutter_spinkit.dart';

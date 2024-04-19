@@ -1,12 +1,7 @@
 import 'dart:developer';
 
-import 'package:chat_app/services/notification_services.dart';
 import 'package:chat_app/utils/exports.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 
 class AuthController extends GetxController {
   final emailController = TextEditingController();
@@ -28,8 +23,6 @@ class AuthController extends GetxController {
   final bio = ''.obs;
 
   RegExp get passwordRegexExp => RegExp(passwordRegex);
-
-  // final baseURL = '$baseUrl/user';
 
   signup() async {
     try {
@@ -94,6 +87,7 @@ class AuthController extends GetxController {
       final password = passwordController.text.trim();
       final prefs = await SharedPreferences.getInstance();
 
+      final fcmToken = await NotificationService().getFCMToken();
       if (email.isEmpty || password.isEmpty) {
         Get.snackbar('Error', 'All fields are required');
         return;
@@ -102,11 +96,11 @@ class AuthController extends GetxController {
       var data = {
         'email': email,
         'password': password,
+        'fcm_token': fcmToken,
       };
       var url = Uri.parse('$baseUrl/user/login/');
       var response = await http.post(url, body: data);
       var responseJson = json.decode(response.body);
-      log('Response JSON: $responseJson');
       if (response.statusCode == 200) {
         Get.snackbar('Success', responseJson['status']);
         isLoading(false);
@@ -150,7 +144,6 @@ class AuthController extends GetxController {
       var url = Uri.parse('$baseUrl/user/send-otp/');
       var response = await http.post(url, body: data);
       var responseJson = json.decode(response.body);
-      log('Response JSON: $responseJson');
 
       if (response.statusCode == 201) {
         Get.snackbar('Success', responseJson['status']);
@@ -174,7 +167,6 @@ class AuthController extends GetxController {
       isLoading(true);
       final email = emailController.text.toLowerCase().trim();
       final otp = otpController.text.trim();
-      log(otp);
 
       if (email.isEmpty || otp.isEmpty) {
         Get.snackbar('Error', 'All fields are required');
@@ -187,10 +179,8 @@ class AuthController extends GetxController {
       };
       var url = Uri.parse('$baseUrl/user/verify-otp/');
       var response = await http.post(url, body: data);
-      log('ResponseCode JSON: ${response.statusCode}');
       if (response.statusCode == 200) {
         var responseJson = json.decode(response.body);
-        log('Response JSON: $responseJson');
         Get.snackbar('Success', responseJson['message']);
         otpController.clear();
         Get.to(() => const ChangePasswordScreen(),
@@ -223,8 +213,6 @@ class AuthController extends GetxController {
       };
       var url = Uri.parse('$baseUrl/user/forget-password/');
       var response = await http.put(url, body: data);
-      var responseJson = json.decode(response.body);
-      log('Response JSON: $responseJson');
       if (response.statusCode == 200) {
         Get.snackbar('Success', 'Password reset successfully');
         emailController.clear();
@@ -250,7 +238,6 @@ class AuthController extends GetxController {
       // If the database file exists, delete it
       if (exists) {
         await deleteDatabase(path);
-        log('Database deleted successfully');
       } else {
         log('Database does not exist');
       }
@@ -270,7 +257,6 @@ class AuthController extends GetxController {
       // If the database file exists, delete it
       if (exists) {
         await deleteDatabase(path);
-        log('Database deleted successfully');
       } else {
         log('Database does not exist');
       }
@@ -301,7 +287,6 @@ class AuthController extends GetxController {
 
       Get.offUntil(GetPageRoute(page: () => LoginScreen()), (route) => false);
     } catch (e) {
-      log(e.toString());
       Get.snackbar('Error', e.toString());
     }
   }
@@ -315,21 +300,15 @@ class AuthController extends GetxController {
       final googleSignInAuthentication =
           await googleSignInAccount?.authentication;
       final accessToken = googleSignInAuthentication?.accessToken;
-      final idToken = googleSignInAuthentication?.idToken;
-      log('Access Token: $accessToken');
-      log('ID Token: $idToken');
       final url = Uri.parse('$baseUrl/user/google/');
       final response = await http.post(url, body: {
         'access_token': accessToken,
-        // 'id_token': idToken,
       });
       final responseJson = json.decode(response.body);
-      log('Response JSON: $responseJson');
       if (response.statusCode == 200) {
         prefs.setString('token', responseJson['token']);
         prefs.setString('user_id', responseJson['user_id'].toString());
         userid.value = responseJson['user_id'].toString();
-        // getUserDetails();
         Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
       } else {
         Get.snackbar('Error', responseJson['error']);
@@ -340,92 +319,23 @@ class AuthController extends GetxController {
     isLoading(false);
   }
 
-  // authWithFacebookDjango() async {
-  //   try {
-  //     isLoading(true);
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final facebookLogin = FacebookLogin();
-  //     final result = await facebookLogin.logIn(['email']);
-  //     final accessToken = result.accessToken.token;
-  //     log('Access Token: $accessToken');
-  //     final url = Uri.parse('$baseUrl/user/facebook/');
-  //     final response = await http.post(url, body: {
-  //       'access_token': accessToken,
-  //     });
-  //     final responseJson = json.decode(response.body);
-  //     log('Response JSON: $responseJson');
-  //     if (response.statusCode == 200) {
-  //       prefs.setString('token', responseJson['token']);
-  //       prefs.setString('user_id', responseJson['user_id'].toString());
-  //       Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
-  //     } else {
-  //       Get.snackbar('Error', responseJson['error']);
-  //     }
-  //   } catch (e) {
-  //     log('Error: $e');
-  //   }
-  //   isLoading(false);
-  // }
-
-  // authWithFacebookDjango() async {
-  //   try {
-  //     isLoading(true);
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final LoginResult result = await FacebookAuth.instance.login();
-  //     final AccessToken? accessToken = result.accessToken;
-  //     log('Access Token: $accessToken');
-  // final url = Uri.parse('$baseUrl/user/facebook/');
-  // final response = await http.post(url, body: {
-  //   'access_token': accessToken?.token,
-  // });
-  // final responseJson = json.decode(response.body);
-  // log('Response JSON: $responseJson');
-  // if (response.statusCode == 200) {
-  //   prefs.setString('token', responseJson['token']);
-  //   prefs.setString('user_id', responseJson['user_id'].toString());
-  //   Get.offUntil(GetPageRoute(page: () => const Home()), (route) => false);
-  // } else {
-  //   Get.snackbar('Error', responseJson['error']);
-  // }
-  //   } catch (e) {
-  //     log('Error: $e');
-  //   }
-  //   isLoading(false);
-  // }
-
   getUserDetails() async {
-    // log('Inside getUserDetails');
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // prefs.setString('first_name', '');
-      // prefs.setString('last_name', '');
-      // prefs.setString('email', '');
-      // prefs.setString('image', '');
-      // prefs.setString('phone', '');
-      // prefs.setString('bio', '');
-
-      // log('Inside getUserDetails try');
       if (prefs.getString('token') == null ||
           prefs.getString('token') == '' ||
           prefs.getString('token')!.isEmpty) {
-        log('Token is empty');
         return;
       }
       final firstName = prefs.getString('first_name');
-      // log('First Name: $firstName');
       if (firstName == null || firstName.isEmpty || firstName == '') {
-        log('User details do not exist');
         try {
-          // log('Inside getUserDetails try try');
           final url = Uri.parse('$baseUrl/user/update/');
-          // log('URL: $url');
           final response = await http.post(url, headers: {
             'Authorization': 'JWT ${prefs.getString('token')}',
           });
-          // log('Response: $response');
           final responseJson = json.decode(response.body);
-          log('Response JSON: $responseJson');
           if (response.statusCode == 200) {
             if (responseJson.containsKey('first_name')) {
               final firstNameValue = responseJson['first_name'];
@@ -470,14 +380,6 @@ class AuthController extends GetxController {
           log('Error: $e');
         }
       } else {
-        // log('User details already exist');
-        // log('First Name: ${prefs.getString('first_name')}');
-        // log('Last Name: ${prefs.getString('last_name')}');
-        // log('Email: ${prefs.getString('email')}');
-        // log('Image: ${prefs.getString('image')}');
-        // log('Phone: ${prefs.getString('phone')}');
-        // log('Bio: ${prefs.getString('bio')}');
-
         username.value =
             '${prefs.getString('first_name')!} ${prefs.getString('last_name')!}';
         email.value = prefs.getString('email')!;
@@ -485,13 +387,6 @@ class AuthController extends GetxController {
         phone.value = prefs.getString('phone') ?? '';
         bio.value = prefs.getString('bio') ?? '';
         userid.value = prefs.getString('id')!;
-        log('Image: ${image.value.toString()}');
-
-        // log('Username: ${username.value}');
-        // log('Email: ${email.value}');
-        // log('Image: ${image.value}');
-        // log('Phone: ${phone.value}');
-        // log('Bio: ${bio.value}');
       }
     } catch (e) {
       log('Error: $e');
@@ -505,11 +400,7 @@ class AuthController extends GetxController {
 
     final notificationPermission = await Permission.notification.request();
     if (notificationPermission.isGranted) {
-      await flutterLocalNotificationsPlugin.initialize(
-        const InitializationSettings(
-          android: AndroidInitializationSettings(logo),
-        ),
-      );
+      await NotificationService().initNotification();
     } else {
       await Permission.notification.request();
     }

@@ -30,7 +30,6 @@ class OnboardingScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 30),
             Image.asset(logo),
-            // const SizedBox(height: 20),
             const Spacer(),
             Column(
               children: [
@@ -46,7 +45,6 @@ class OnboardingScreen extends StatelessWidget {
                   'easily and quickly',
                   style: TextStyle(
                     color: whiteColor,
-                    // fontSize: 68,
                     fontSize: MediaQuery.of(context).size.width / 6,
 
                     fontFamily: carosRegular,
@@ -93,7 +91,6 @@ class OnboardingScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(5),
                   height: 60,
                   decoration: BoxDecoration(
-                    // color: whiteColor,
                     border: Border.all(
                       color: whiteColor,
                       width: 1,
@@ -113,7 +110,6 @@ class OnboardingScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(5),
                   height: 60,
                   decoration: BoxDecoration(
-                    // color: whiteColor,
                     border: Border.all(
                       color: whiteColor,
                       width: 1,

@@ -6,6 +6,7 @@ Widget bottomModalSheet(
   context,
   channel,
   username,
+  secondUserId,
 ) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -68,7 +69,7 @@ Widget bottomModalSheet(
         ),
         ListTile(
           onTap: () {
-            chatController.documentPicker(context, channel, username);
+            chatController.documentPicker(context, channel, username, secondUserId);
           },
           leading: Container(
             padding: const EdgeInsets.all(10),
@@ -102,7 +103,7 @@ Widget bottomModalSheet(
         ),
         ListTile(
           onTap: () {
-            chatController.filePicker(context, channel, username);
+            chatController.filePicker(context, channel, username, secondUserId);
           },
           leading: Container(
             padding: const EdgeInsets.all(10),

@@ -2,14 +2,12 @@
 
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:chat_app/main.dart';
 import 'package:chat_app/screens/chat_screen/video_player_screen.dart';
-import 'package:chat_app/services/notification_service.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
@@ -59,7 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String? _token;
   String? initialMessage;
-  bool _resolved = false;
+  final bool _resolved = false;
 
   @override
   void initState() {
@@ -75,47 +73,36 @@ class _ChatScreenState extends State<ChatScreen> {
         : null);
 
     super.initState();
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
-        'https://www.sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4'))
-      ..initialize().then((_) {
+    _videoPlayerController = VideoPlayerController.networkUrl(
+      Uri.parse(
+          'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg'),
+    )..initialize().then((_) {
         setState(() {
           isAudioPlayerInitialized = true;
         });
       });
 
-    FirebaseMessaging.instance.getInitialMessage().then(
-          (value) => setState(
-            () {
-              _resolved = true;
-              initialMessage = value?.data.toString();
-            },
-          ),
-        );
+    // FirebaseMessaging.instance.getInitialMessage().then(
+    //       (value) => setState(
+    //         () {
+    //           _resolved = true;
+    //           initialMessage = value?.data.toString();
+    //         },
+    //       ),
+    //     );
 
-    FirebaseMessaging.onMessage.listen(showFlutterNotification);
+    // FirebaseMessaging.onMessage.listen(showFlutterNotification);
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      log('A new onMessageOpenedApp event was published!');
-      Navigator.pushNamed(
-        context,
-        '/message',
-        arguments: MessageArguments(message, true),
-      );
-    });
+    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    //   log('A new onMessageOpenedApp event was published!');
+    //   // Navigator.pushNamed(
+    //   //   context,
+    //   //   '/message',
+    //   //   arguments: MessageArguments(message, true),
+    //   // );
+    // });
     _channel.stream.listen((event) async {
-      // final token = await FirebaseMessaging.instance.getToken();
-      // await FirebaseMessaging.instance.sendMessage(
-      //   to: token,
-      //   // notification: jsonEncode({
-      //   //   'title': 'New Message',
-      //   //   'body': 'You have a new message in your chat app!',
-      //   // }),
-      //   data: {
-      //     'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-      //     'id': '1',
-      //     'status': 'done',
-      //   },
-      // );
+     
       var data = json.decode(event);
       log('data1122: $data');
       userId = data['user_id'];
@@ -161,75 +148,76 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> sendPushMessage() async {
-    _token = await NotificationService().getFCMToken();
 
-    if (_token == null) {
-      log('Unable to send FCM message, no token exists.');
-      return;
-    }
+  // Future<void> sendPushMessage() async {
+  //   _token = await NotificationService().getFCMToken();
 
-    try {
-      await http.post(
-        Uri.parse('https://api.rnfirebase.io/messaging/send'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: constructFCMPayload(_token),
-      );
-      log('FCM request for device sent!');
-    } catch (e) {
-      log(e.toString());
-    }
-  }
+  //   if (_token == null) {
+  //     log('Unable to send FCM message, no token exists.');
+  //     return;
+  //   }
 
-  Future<void> onActionSelected(String value) async {
-    switch (value) {
-      case 'subscribe':
-        {
-          log(
-            'FlutterFire Messaging Example: Subscribing to topic "fcm_test".',
-          );
-          await FirebaseMessaging.instance.subscribeToTopic('fcm_test');
-          log(
-            'FlutterFire Messaging Example: Subscribing to topic "fcm_test" successful.',
-          );
-        }
-        break;
-      case 'unsubscribe':
-        {
-          log(
-            'FlutterFire Messaging Example: Unsubscribing from topic "fcm_test".',
-          );
-          await FirebaseMessaging.instance.unsubscribeFromTopic('fcm_test');
-          log(
-            'FlutterFire Messaging Example: Unsubscribing from topic "fcm_test" successful.',
-          );
-        }
-        break;
-      case 'get_apns_token':
-        {
-          if (defaultTargetPlatform == TargetPlatform.iOS ||
-              defaultTargetPlatform == TargetPlatform.macOS) {
-            log('FlutterFire Messaging Example: Getting APNs token...');
-            String? token = await FirebaseMessaging.instance.getAPNSToken();
-            log('FlutterFire Messaging Example: Got APNs token: $token');
-          } else {
-            log(
-              'FlutterFire Messaging Example: Getting an APNs token is only supported on iOS and macOS platforms.',
-            );
-          }
-        }
-        break;
-      default:
-        break;
-    }
-  }
+  //   try {
+  //     await http.post(
+  //       Uri.parse('https://api.rnfirebase.io/messaging/send'),
+  //       headers: <String, String>{
+  //         'Content-Type': 'application/json; charset=UTF-8',
+  //       },
+  //       body: constructFCMPayload(_token),
+  //     );
+  //     log('FCM request for device sent!');
+  //   } catch (e) {
+  //     log(e.toString());
+  //   }
+  // }
+
+  // Future<void> onActionSelected(String value) async {
+  //   switch (value) {
+  //     case 'subscribe':
+  //       {
+  //         log(
+  //           'FlutterFire Messaging Example: Subscribing to topic "fcm_test".',
+  //         );
+  //         await FirebaseMessaging.instance.subscribeToTopic('fcm_test');
+  //         log(
+  //           'FlutterFire Messaging Example: Subscribing to topic "fcm_test" successful.',
+  //         );
+  //       }
+  //       break;
+  //     case 'unsubscribe':
+  //       {
+  //         log(
+  //           'FlutterFire Messaging Example: Unsubscribing from topic "fcm_test".',
+  //         );
+  //         await FirebaseMessaging.instance.unsubscribeFromTopic('fcm_test');
+  //         log(
+  //           'FlutterFire Messaging Example: Unsubscribing from topic "fcm_test" successful.',
+  //         );
+  //       }
+  //       break;
+  //     case 'get_apns_token':
+  //       {
+  //         if (defaultTargetPlatform == TargetPlatform.iOS ||
+  //             defaultTargetPlatform == TargetPlatform.macOS) {
+  //           log('FlutterFire Messaging Example: Getting APNs token...');
+  //           String? token = await FirebaseMessaging.instance.getAPNSToken();
+  //           log('FlutterFire Messaging Example: Got APNs token: $token');
+  //         } else {
+  //           log(
+  //             'FlutterFire Messaging Example: Getting an APNs token is only supported on iOS and macOS platforms.',
+  //           );
+  //         }
+  //       }
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 
   @override
   void dispose() {
     _controller.dispose();
-    _channel.sink.close();
+    // _channel.sink.close();
     audioRecord.dispose();
     super.dispose();
   }
@@ -237,10 +225,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool playing = false;
   Future<void> startRecording() async {
     audioRecord = AudioRecorder();
-    // if (!await _checkPermission()) {
-    //   log('Recording Permission not granted');
-    //   return;
-    // }
 
     try {
       log("START RECORDING+++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -293,6 +277,7 @@ class _ChatScreenState extends State<ChatScreen> {
           'type': 'audio_type',
           'username': widget.username,
           'message': bytes,
+          'toID': widget.secondUserId,
         }),
       );
     } catch (e) {
@@ -430,8 +415,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           child: AppBar(
-            // backgroundColor: primartColor.withOpacity(1.0),
-            // forceMaterialTransparency: true,
             leading: InkWell(
               splashColor: Colors.transparent,
               splashFactory: NoSplash.splashFactory,
@@ -441,7 +424,6 @@ class _ChatScreenState extends State<ChatScreen> {
               child: const Icon(
                 size: 20,
                 CupertinoIcons.back,
-                // color: primaryFontColor,
                 color: whiteColor,
               ),
             ),
@@ -452,7 +434,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   height: 40,
                   width: 40,
                   decoration: BoxDecoration(
-                    // color: whiteColor,
                     color: primaryFontColor,
                     borderRadius: BorderRadius.circular(1000),
                   ),
@@ -508,7 +489,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     Text(
                       widget.username,
                       style: const TextStyle(
-                        // color: primaryFontColor,
                         color: whiteColor,
                         fontSize: 14,
                         fontFamily: carosMedium,
@@ -517,7 +497,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     const Text(
                       'Active Now',
                       style: TextStyle(
-                        // color: greyColor,
                         color: lightgreyColor,
                         fontSize: 12,
                         fontFamily: circularStdBook,
@@ -530,10 +509,8 @@ class _ChatScreenState extends State<ChatScreen> {
             actions: [
               IconButton(
                 onPressed: () {},
-                // icon: Image.asset('assets/icons/Call.png'),
                 icon: const Icon(
                   CupertinoIcons.ellipsis_vertical,
-                  // color: primaryFontColor,
                   color: whiteColor,
                   size: 20,
                 ),
@@ -561,7 +538,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     if (!snapshot.hasData) {
                       return const Center(
                         child: Text('No Messages found'),
-                        // child: CupertinoActivityIndicator(),
                       );
                     } else if (snapshot.hasError) {
                       return const Center(
@@ -614,14 +590,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         // Check if the message is an image
                         if (image.toString() == 'image_type') {
                           return InkWell(
-                            onTap: () {
-                              // Get.to(
-                              //   () => ImagePreview(
-                              //     image:
-                              //         '$baseUrl$message',
-                              //   ),
-                              // );
-                            },
+                            onTap: () {},
                             child: Column(
                               children: [
                                 Column(
@@ -719,8 +688,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                   innerPadding: 10,
                                   controller: VoiceController(
                                     audioSrc: '$baseUrl$message',
-                                    // audioSrc:
-                                    //     'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
                                     maxDuration:
                                         const Duration(milliseconds: 1),
                                     isFile: false,
@@ -770,17 +737,25 @@ class _ChatScreenState extends State<ChatScreen> {
                                         height: 250,
                                         width: 250,
                                         decoration: BoxDecoration(
-                                          color: sender == 'Me'
-                                              ? primartColor
-                                              : chatCardColor,
+                                          color: blackColor,
                                           borderRadius:
                                               BorderRadius.circular(10),
                                         ),
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(10),
-                                          child: VideoPlayer(
-                                              _videoPlayerController),
+                                          child: _videoPlayerController
+                                                  .value.isInitialized
+                                              ? VideoPlayer(
+                                                  _videoPlayerController)
+                                              : const Center(
+                                                  child: Icon(
+                                                    Icons
+                                                        .play_circle_fill_rounded,
+                                                    size: 50,
+                                                    color: whiteColor,
+                                                  ),
+                                                ),
                                         ),
                                       ),
                                     ),
@@ -815,18 +790,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                 Container(
                                   width:
                                       MediaQuery.of(context).size.width * 0.5,
-                                  padding: const EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(0),
                                   margin:
                                       const EdgeInsets.symmetric(vertical: 5),
                                   decoration: BoxDecoration(
                                     color: sender == 'Me'
                                         ? primartColor
-                                        : chatCardColor,
+                                        : greyColor,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: TextButton(
                                     onPressed: () {
-                                      //     });
                                       openDocument(context, message);
                                     },
                                     child: Container(
@@ -836,23 +810,34 @@ class _ChatScreenState extends State<ChatScreen> {
                                       decoration: BoxDecoration(
                                         color: sender == 'Me'
                                             ? primartColor.withAlpha(5)
-                                            : chatCardColor,
+                                            : greyColor,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Row(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
                                         children: [
-                                          Text(
-                                            fileName,
-                                            maxLines: 1,
-                                            softWrap: true,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              color: whiteColor,
-                                              fontSize: 14,
-                                              fontFamily: circularStdBook,
+                                          const Icon(
+                                            Icons.insert_drive_file,
+                                            color: whiteColor,
+                                          ),
+                                          const SizedBox(width: 2),
+                                          SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: Text(
+                                              fileName,
+                                              maxLines: 1,
+                                              softWrap: true,
                                               overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 14,
+                                                fontFamily: circularStdBook,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
                                           ),
                                           const Spacer(),
@@ -939,7 +924,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             ],
                           );
                         }
-                        return null;
                       },
                     );
                   }),
@@ -949,18 +933,16 @@ class _ChatScreenState extends State<ChatScreen> {
               width: double.infinity,
               decoration: const BoxDecoration(
                 color: whiteColor,
-                // borderRadius: BorderRadius.circular(1000),
               ),
               child: Row(
                 children: [
-                  // const SizedBox(width: 20),
                   InkWell(
                     onTap: () {
                       showModalBottomSheet(
                         context: context,
                         builder: (BuildContext context) {
                           return bottomModalSheet(chatController, context,
-                              _channel, widget.username);
+                              _channel, widget.username, widget.secondUserId);
                         },
                       );
                     },
@@ -976,7 +958,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
@@ -985,7 +966,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         chatController.isWriting.value = false;
                         log('value: ${chatController.isWriting.value}');
                       },
-                      // controller: chatController.messageController,
                       controller: _controller,
                       cursorColor: secondaryFontColor,
                       onChanged: (value) =>
@@ -1017,14 +997,15 @@ class _ChatScreenState extends State<ChatScreen> {
                               log('inside send');
                               if (_controller.text.isNotEmpty) {
                                 log('inside send if');
-                                // _channel.sink.add(
-                                //   jsonEncode({
-                                //     'type': 'text_type',
-                                //     'username': widget.username,
-                                //     'message': _controller.text,
-                                //   }),
-                                // );
-                                sendPushMessage();
+                                _channel.sink.add(
+                                  jsonEncode({
+                                    'type': 'text_type',
+                                    'username': widget.username,
+                                    'message': _controller.text,
+                                    'toID': widget.secondUserId,
+                                  }),
+                                );
+                                // sendPushMessage();
                                 log('message sent');
                                 scrollToBottom();
                                 chatController.isWriting.value = false;
@@ -1057,7 +1038,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                             context,
                                             ImageSource.camera,
                                             _channel,
-                                            widget.username);
+                                            widget.username,
+                                            widget.secondUserId);
                                       },
                                       child: const Icon(
                                         CupertinoIcons.camera,
@@ -1092,7 +1074,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ? whiteColor
                                         : primaryFontColor,
                                     size: isRecording ? 30 : 25,
-                                    // fill: isRecording ? 10.0 : 0.0,
                                   ),
                                 ),
                               ),
@@ -1100,7 +1081,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             ],
                           ),
                   ),
-                  // const SizedBox(width: 20),
                 ],
               ),
             )
@@ -1110,7 +1090,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // Function to scroll to the bottom
   void scrollToBottom() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,

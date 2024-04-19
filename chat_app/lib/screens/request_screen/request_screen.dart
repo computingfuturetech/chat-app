@@ -3,7 +3,6 @@ import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/request_users.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class RequestScreen extends StatelessWidget {
   const RequestScreen({super.key});

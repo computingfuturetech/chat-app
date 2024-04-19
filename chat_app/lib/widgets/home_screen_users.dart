@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -12,9 +10,6 @@ Widget homeUsers(
   lastMessage,
   secondUserId,
 ) {
-  log('username: $username');
-  log('bio: $bio');
-  log('imageUrl: $imageUrl');
   return Column(
     children: [
       Container(
@@ -23,32 +18,6 @@ Widget homeUsers(
           // Specify a key if the Slidable is dismissible.
 
           key: const ValueKey(1),
-          // The start action pane is the one at the left or the top side.
-          // startActionPane: ActionPane(
-          //   // A motion is a widget used to control how the pane animates.
-          //   motion: const ScrollMotion(),
-          //   // A pane can dismiss the Slidable.
-          //   dismissible: DismissiblePane(onDismissed: () {}),
-          //   // All actions are defined in the children parameter.
-          //   children: const [
-          //     // A SlidableAction can have an icon and/or a label.
-          //     SlidableAction(
-          //       onPressed: doNothing,
-          //       backgroundColor: Color(0xFFFE4A49),
-          //       foregroundColor: Colors.white,
-          //       icon: Icons.delete,
-          //       label: 'Delete',
-          //     ),
-          //     SlidableAction(
-          //       onPressed: doNothing,
-          //       backgroundColor: Color(0xFF21B7CA),
-          //       foregroundColor: Colors.white,
-          //       icon: Icons.share,
-          //       label: 'Share',
-          //     ),
-          //   ],
-          // ),
-          // The end action pane is the one at the right or the bottom side.
           endActionPane: const ActionPane(
             motion: ScrollMotion(),
             children: [
@@ -118,8 +87,6 @@ Widget homeUsers(
                                   height: 50,
                                   width: 50,
                                   fit: BoxFit.cover,
-                                  // imageUrl:
-                                  //     'https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg'),
                                   imageUrl: imageUrl ??
                                       'https://via.placeholder.com/150',
                                 ),

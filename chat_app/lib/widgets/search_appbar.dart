@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/utils/exports.dart';
 
@@ -16,7 +14,6 @@ Widget searchAppBar(
       autofocus: true,
       onChanged: (value) {
         userController.fetchContactSearchData(value);
-        log('value: $value');
       },
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(10),
