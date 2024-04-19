@@ -58,6 +58,7 @@ def login_view(request):
     if request.method == 'POST':
         email_or_username = request.data.get('email')
         password = request.data.get('password')
+        fcm_token = request.data.get('fcm_token')
         if not email_or_username or not password:
             return Response({'error': 'Please provide both email or username and password.'}, status=status.HTTP_400_BAD_REQUEST)
         if '@' in email_or_username:
@@ -74,6 +75,13 @@ def login_view(request):
                 'user_id': user.id,
                 'status':'Successfully login',
             }
+            if fcm_token:
+                print(fcm_token)
+                user_obj = User.objects.filter(id=user.id).first()
+                if user_obj:
+                    print('object_found')
+                    user_obj.fcm_token = fcm_token
+                    user_obj.save()
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
