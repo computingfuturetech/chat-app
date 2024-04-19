@@ -16,6 +16,8 @@ from datetime import timedelta
 
 
 
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -91,7 +93,7 @@ MIDDLEWARE = [
 
 CRONJOBS = [
     ('*/1 * * * *', 'user.cron.delete_otp'),
-    ('*/1 * * * *', 'user.cron.delete_previous_messages'),
+    ('*/1 * * * *', 'chat.cron.delete_previous_messages'),
 ]
 
 CORS_ALLOWED_ORIGINS = [

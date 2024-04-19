@@ -17,6 +17,7 @@ class User(AbstractUser):
     is_social_login = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)
     bio = models.TextField(blank=True,default='Hey there! i am using chatbox')
+    fcm_token=models.TextField(blank=True, null=True)
     def __str__(self):
         return self.username
 

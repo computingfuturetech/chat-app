@@ -93,7 +93,6 @@ class MessagesView(ListAPIView):
 	serializer_class = ChatMessageSerializer
 
 
-
         
 
 
