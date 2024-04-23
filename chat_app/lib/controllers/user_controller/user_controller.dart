@@ -20,6 +20,8 @@ class UserController extends GetxController {
 
   final isHomeScreenLoading = false.obs;
 
+  final RxInt aiChatRoomIds = 0.obs;
+
   final toId = ''.obs;
   final fromId = ''.obs;
 
@@ -245,6 +247,7 @@ class UserController extends GetxController {
   void onInit() {
     super.onInit();
     getToken();
+    // getAIChatroom();
   }
 
   // Future<void> sendFriendRequestNotification() async {
@@ -446,6 +449,45 @@ class UserController extends GetxController {
     SharedPreferences.getInstance().then((prefs) {
       // final bool? isOnboardingDone = prefs.getBool('isOnboardingDone');
       token.value = prefs.getString('token') ?? '';
-    });
+    }).then((value) => getAIChatroom());
+  }
+
+  getAIChatroom() async {
+    log('getAIChatroom');
+    try {
+      final header = {
+        'Authorization': 'JWT $token',
+      };
+      final url = Uri.parse('$baseUrl/chat/chatrooms/ai');
+
+      final response = await http.get(url, headers: header);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseJson = jsonDecode(response.body);
+        log('getAIChatrooms: $responseJson');
+
+        if (responseJson.isNotEmpty && responseJson[0].containsKey('id')) {
+          final dynamic chatRoomId = responseJson[0]['id'];
+          if (chatRoomId is int) {
+            log('AI Chatroom ID: $chatRoomId');
+            aiChatRoomIds.value = chatRoomId;
+          } else if (chatRoomId is String) {
+            // Convert the string to an integer
+            final int aiChatRoomId = double.parse(chatRoomId).toInt();
+            // log('AI Chatroom ID: $aiChatRoomId');
+            aiChatRoomIds.value = aiChatRoomId;
+            log('AI Chatroom ID RxInt: ${aiChatRoomIds.value}');
+          } else {
+            throw 'Unexpected type for chat_room_id: ${chatRoomId.runtimeType}';
+          }
+        } else {
+          throw 'chat_room_id key not found or response is empty';
+        }
+      } else {
+        throw 'Failed to load data';
+      }
+    } catch (e) {
+      log('Error from AI: $e');
+    }
   }
 }

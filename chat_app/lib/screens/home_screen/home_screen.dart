@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/models/chat_room/chat_room.dart';
+import 'package:chat_app/screens/chat_screen/ai_chat_screen.dart';
 import 'package:chat_app/screens/home_screen/search_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/home_screen_users.dart';
@@ -11,6 +14,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(UserController());
     final authController = Get.put(AuthController());
+
     return Scaffold(
       backgroundColor: primaryFontColor,
       appBar: PreferredSize(
@@ -25,6 +29,22 @@ class HomeScreen extends StatelessWidget {
               transition: Transition.noTransition,
             );
           },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          log(controller.aiChatRoomIds.value.toString());
+          Get.to(() => AIChatScreen(
+                username: 'AI',
+                chatRoomId: controller.aiChatRoomIds.value.toString(),
+                secondUserId: '2',
+              ));
+        },
+        backgroundColor: greenColor,
+        tooltip: 'Chat with AI',
+        child: const Icon(
+          Icons.chat_rounded,
+          color: whiteColor,
         ),
       ),
       body: Container(
@@ -81,14 +101,17 @@ class HomeScreen extends StatelessWidget {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           final chatRoom = chatRooms![index];
-                          return homeUsers(
-                            '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
-                            chatRoom.membersInfo[0].bio,
-                            chatRoom.id.toString(),
-                            '$baseUrl${chatRoom.membersInfo[0].image}',
-                            chatRoom.lastMessage.message,
-                            chatRoom.membersInfo.first.id.toString(),
-                          );
+
+                          return index == 0
+                              ? Container()
+                              : homeUsers(
+                                  '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
+                                  chatRoom.membersInfo[0].bio,
+                                  chatRoom.id.toString(),
+                                  '$baseUrl${chatRoom.membersInfo[0].image}',
+                                  chatRoom.lastMessage.message,
+                                  chatRoom.membersInfo.first.id.toString(),
+                                );
                         },
                       );
                     }
