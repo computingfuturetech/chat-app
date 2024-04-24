@@ -46,6 +46,7 @@ dependencies:
   video_player: ^2.8.6
   firebase_messaging: ^14.8.2
   firebase_core: ^2.30.0
+  dart_openai: ^5.1.0
 
 dev_dependencies:
   flutter_test:
