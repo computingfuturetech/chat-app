@@ -55,9 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isAudioPlayerInitialized = false; // Add this flag
   late VideoPlayerController _videoPlayerController;
 
-  String? _token;
   String? initialMessage;
-  final bool _resolved = false;
 
   @override
   void initState() {
@@ -81,26 +79,6 @@ class _ChatScreenState extends State<ChatScreen> {
           isAudioPlayerInitialized = true;
         });
       });
-
-    // FirebaseMessaging.instance.getInitialMessage().then(
-    //       (value) => setState(
-    //         () {
-    //           _resolved = true;
-    //           initialMessage = value?.data.toString();
-    //         },
-    //       ),
-    //     );
-
-    // FirebaseMessaging.onMessage.listen(showFlutterNotification);
-
-    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    //   log('A new onMessageOpenedApp event was published!');
-    //   // Navigator.pushNamed(
-    //   //   context,
-    //   //   '/message',
-    //   //   arguments: MessageArguments(message, true),
-    //   // );
-    // });
     _channel.stream.listen((event) async {
      
       var data = json.decode(event);

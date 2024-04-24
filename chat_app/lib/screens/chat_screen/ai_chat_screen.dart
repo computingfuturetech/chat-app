@@ -38,6 +38,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
   String? initialMessage;
+  String lastMessage = '';
+
+  bool isFourHoursCompleted = false;
 
   @override
   void initState() {
@@ -268,9 +271,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
                         data[index].content.contains("timestamp")
                             ? timestam = decodedData['timestamp']
                             : timestam = data[index].timestamp;
+
                         List<String> parts = timestam.split(':');
                         int hour = int.parse(parts[0]);
                         int minute = int.parse(parts[1]);
+
+                        final currentTime = DateTime.now().hour;
 
                         // Format the time
                         final timestamp = DateFormat('hh:mm a')
@@ -282,6 +288,14 @@ class _AIChatScreenState extends State<AIChatScreen> {
                         data[index].content.contains("message_type")
                             ? image = decodedData['message_type']
                             : image = data[index].content;
+
+                        if (currentTime - hour >= 4) {
+                          isFourHoursCompleted = true;
+                          lastMessage =
+                              'Your last response was: $lastMessage now, please respond to this message.';
+                        } else {
+                          lastMessage = message;
+                        }
 
                         log('simage1122: ${image.toString()}');
 
@@ -388,6 +402,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   const SizedBox(width: 10),
                   InkWell(
                     onTap: () {
+                      log('LLLL:$lastMessage');
                       log('inside send');
                       if (_controller.text.isNotEmpty) {
                         log('inside send if');
@@ -396,6 +411,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                             'type': 'ai_type',
                             'username': widget.username,
                             'message': _controller.text,
+                            'last_message': lastMessage,
                             'toID': widget.secondUserId,
                           }),
                         );
@@ -431,10 +447,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
   }
 
   void scrollToBottom() {
-    _scrollController.animateTo(
+    _scrollController.jumpTo(
       _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
+      // duration: const Duration(milliseconds: 300),
+      // curve: Curves.easeOut,
     );
   }
 }
