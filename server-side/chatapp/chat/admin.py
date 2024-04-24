@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ChatRoom, ChatMessage
+from .models import ChatRoom, ChatMessage, AiModel
 
 @admin.register(ChatRoom)
 class ChatRoomAdmin(admin.ModelAdmin):
@@ -9,3 +9,7 @@ class ChatRoomAdmin(admin.ModelAdmin):
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
     list_display = ['chat', 'user', 'message', 'audio_file','media','document','image', 'timestamp', 'datestamp']
+
+@admin.register(AiModel)
+class AiModelAdmin(admin.ModelAdmin):
+    list_display = ['chat', 'user', 'request', 'response','timestamp','datestamp']

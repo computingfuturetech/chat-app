@@ -1,6 +1,6 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .models import ChatRoom, ChatMessage
+from .models import ChatRoom, ChatMessage,AiModel
 from user.models import User,FriendRequest
 from django.contrib.auth import get_user_model
 from asgiref.sync import sync_to_async
@@ -12,18 +12,31 @@ from firebase_admin import messaging
 from django.db.models import ObjectDoesNotExist
 from firebase_admin import credentials
 from channels.db import database_sync_to_async
+from openai import OpenAI
+import os
+from django.conf import settings
+
+api_key = os.environ.get("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 cred = credentials.Certificate('chat/chat-box-cft-firebase-adminsdk-61r28-0745b75238.json')
 firebase_admin.initialize_app(cred)
 
-import os
-from django.conf import settings
+def openai(client, content):
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "user", "content": content}
+        ]
+    )
+    response = completion.choices[0].message.content
+    return response
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['roomId']
         self.user_id = self.scope['url_route']['kwargs']['userId']
-
         room = await sync_to_async(ChatRoom.objects.get)(id=self.room_id)
         user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
 
@@ -69,6 +82,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.handle_document_message(text_data_json, username, chat_room,member_ids)
             elif message_type == 'media_type':
                 await self.handle_media_message(text_data_json, username, chat_room,member_ids)
+            elif message_type == 'ai_type':
+                await self.handle_ai_message(text_data_json, username, chat_room,member_ids)
 
         except json.JSONDecodeError:
             return
@@ -81,6 +96,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'error': 'Room does not exist'
             }))
             raise
+    
+    async def handle_ai_message(self, data, username, chat_room, member_ids):
+        last_messsage=data.get('last_message')
+        message = data.get('message')
+
+        requested_message=last_messsage + ' ' + message
+        self.user_id = int(self.scope['url_route']['kwargs']['userId'])
+        sender_user=await sync_to_async(User.objects.get)(id=self.user_id)
+        title=f'{sender_user.first_name} {sender_user.last_name}'
+        id=data.get('toID')
+        to_user_id=int(id)
+        to_user = await database_sync_to_async(User.objects.get)(id=to_user_id)
+        user_token = await sync_to_async(User.objects.get)(id=to_user.id)
+        if user_token:
+            fcm_token=user_token.fcm_token
+        user = await sync_to_async(get_user_model().objects.get)(id=self.user_id)
+        chat_message = await sync_to_async(AiModel.objects.create)(
+            chat=chat_room,
+            user=user,
+            request=message,
+        )
+        timestamp = chat_message.timestamp
+        await self.send_chat_message(username,message, timestamp, 'text_type')
+        
+        chat_message.response = await sync_to_async(openai)(client, requested_message)
+        await sync_to_async(chat_message.save)()
+        
+        await self.send_chat_message('Chatbox_Ai', chat_message.response, timestamp, 'text_type')
 
     async def handle_text_message(self, data, username, chat_room, member_ids):
         message = data.get('message')
@@ -232,7 +275,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'username': username,
                 'content': content,
-                'user_id': self.user_id,
+                'user_id': self.user_id if username != 'Chatbox_Ai' else 2,
                 'timestamp': timestamp.isoformat(),
                 'message_type': message_type,
             }

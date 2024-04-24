@@ -56,3 +56,12 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f'ChatMessage - {self.user.username}: {self.message}'
+
+
+class AiModel(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    chat = models.ForeignKey(ChatRoom, on_delete=models.SET_NULL, null=True)
+    request=models.TextField(blank=True, null=True)
+    response=models.TextField(blank=True, null=True)
+    timestamp = models.TimeField(auto_now_add=True)
+    datestamp = models.DateField(auto_now_add=True)
