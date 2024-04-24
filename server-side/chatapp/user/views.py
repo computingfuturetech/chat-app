@@ -75,11 +75,18 @@ def login_view(request):
                 'user_id': user.id,
                 'status':'Successfully login',
             }
+            ai = 2
+            chat_room_id = f"{user.id}.{ai}"
+            existing_chat_room = ChatRoom.objects.filter(chat_room_id=chat_room_id).first()
+            if existing_chat_room:
+                chat_room = existing_chat_room
+            else:
+                chat_room = ChatRoom.objects.create(chat_type='one_to_one', chat_room_id=chat_room_id, member_count=2)
+                chat_room.members.add(user.id, ai)
+
             if fcm_token:
-                print(fcm_token)
                 user_obj = User.objects.filter(id=user.id).first()
                 if user_obj:
-                    print('object_found')
                     user_obj.fcm_token = fcm_token
                     user_obj.save()
             return Response(response_data, status=status.HTTP_200_OK)

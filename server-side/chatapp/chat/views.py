@@ -72,6 +72,27 @@ class UserChatRoomsAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class UserAiChatRoomsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user_id = request.user.id
+        ai_user_id = 2 
+        ai_chat_room_id = f"{user_id}.{ai_user_id}" 
+        chat_room=ChatRoom.objects.get(chat_room_id=ai_chat_room_id)
+        ai_chat_room_data = {
+            'id': chat_room.id,
+            'chat_room_id': ai_chat_room_id,
+            'chat_type': 'one_to_one',
+            'member_count': 2,
+            'members_info': [], 
+        }
+        return Response([ai_chat_room_data], status=status.HTTP_200_OK)
+
+
 class ChatRoomView(APIView):
 	def get(self, request, userId):
 		chatRooms = ChatRoom.objects.filter(member=userId)
