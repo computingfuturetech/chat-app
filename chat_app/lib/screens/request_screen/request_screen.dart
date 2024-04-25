@@ -3,6 +3,7 @@ import 'package:chat_app/models/user_model/friend_request.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/request_users.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:shimmer_pro/shimmer_pro.dart';
 
 class RequestScreen extends StatelessWidget {
   const RequestScreen({super.key});
@@ -16,8 +17,9 @@ class RequestScreen extends StatelessWidget {
         preferredSize: const Size.fromHeight(60),
         child: customAppBar(
           title: 'Request',
-          imageUrl: CupertinoIcons.person_add,
-          isIcon: true,
+          // imageUrl: CupertinoIcons.person_add,
+          imageUrl: '',
+          isIcon: false,
         ),
       ),
       body: Container(
@@ -59,11 +61,42 @@ class RequestScreen extends StatelessWidget {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const Center(
-                              child: SpinKitFadingCircle(
-                                color: greenColor,
-                                size: 50,
-                              ),
+                            return ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: 10,
+                              itemBuilder: (context, index) {
+                                return Row(
+                                  children: [
+                                    ShimmerPro.sized(
+                                        scaffoldBackgroundColor: blackColor,
+                                        height: 50,
+                                        width: 50),
+                                    const SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ShimmerPro.sized(
+                                          scaffoldBackgroundColor: blackColor,
+                                          height: 10,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              1.5,
+                                        ),
+                                        ShimmerPro.sized(
+                                          scaffoldBackgroundColor: blackColor,
+                                          height: 10,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              1.5,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           } else if (snapshot.hasError) {
                             return const Center(

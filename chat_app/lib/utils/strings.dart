@@ -5,8 +5,8 @@ const String loginWelcome =
     'Welcome back! Sign in using your social account or email to continue us';
 const signUpWelcome =
     'Get chatting with friends and family today by signing up for our chat app!';
-const String name = 'Name';
-const String nameHint = 'Enter your name';
+const String name = 'Username';
+const String nameHint = 'Enter username';
 const String emailHint = 'Enter your email';
 const String passwordHint = 'Enter your password';
 const String confirmPasswordHint = 'Confirm your password';

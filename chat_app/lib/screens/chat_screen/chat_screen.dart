@@ -59,7 +59,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
-    log('isRecording: $isRecording');
+    _scrollController.addListener(_scrollListener);
     _channel = WebSocketChannel.connect(
       Uri.parse(
           '$webSocketUrl/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
@@ -80,7 +80,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       });
     _channel.stream.listen((event) async {
-     
       var data = json.decode(event);
       log('data1122: $data');
       userId = data['user_id'];
@@ -99,7 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
           // updateListKey();
           setState(
             () {
-              scrollToBottom();
+              // scrollToBottom();
               log('userid1:sd $ChatMessage');
             },
           );
@@ -114,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 sender: 'Me',
                 timestamp: DateTime.now()))
             .then((value) {
-          scrollToBottom();
+          // scrollToBottom();
           setState(
             () {
               log('userid1:sd $ChatMessage');
@@ -126,6 +125,16 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _scrollListener() {
+    if (_scrollController.offset >=
+            _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      setState(() {
+        log('reached the bottom');
+        // Handle reaching the bottom if needed
+      });
+    }
+  }
 
   // Future<void> sendPushMessage() async {
   //   _token = await NotificationService().getFCMToken();
@@ -195,8 +204,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _controller.dispose();
-    // _channel.sink.close();
+    _channel.sink.close();
     audioRecord.dispose();
+    ChatController().isWriting.value = false;
     super.dispose();
   }
 
@@ -523,9 +533,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                     }
                     var data = snapshot.data!;
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      scrollToBottom();
-                    });
+                    if (snapshot.data!.length > 1) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollController
+                            .jumpTo(_scrollController.position.maxScrollExtent);
+                      });
+                    }
                     return ListView.builder(
                       key: _listKey,
                       controller: _scrollController,
@@ -939,6 +952,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
+                      textCapitalization: TextCapitalization.sentences,
+                      onTapOutside: (_) {
+                        chatController.isWriting.value = false;
+                      },
+                      maxLines: 5,
+                      minLines: 1,
+                      autofocus: true,
                       readOnly: isRecording,
                       onFieldSubmitted: (value) {
                         chatController.isWriting.value = false;
@@ -946,8 +966,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                       controller: _controller,
                       cursorColor: secondaryFontColor,
-                      onChanged: (value) =>
-                          chatController.isWriting.value = true,
+                      onChanged: (value) {
+                        _controller.text.isEmpty
+                            ? chatController.isWriting.value = false
+                            : chatController.isWriting.value = true;
+                      },
                       decoration: InputDecoration(
                         fillColor: lightgreyColor,
                         contentPadding: const EdgeInsets.symmetric(
@@ -985,7 +1008,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 );
                                 // sendPushMessage();
                                 log('message sent');
-                                scrollToBottom();
+
                                 chatController.isWriting.value = false;
 
                                 _controller.clear();
@@ -1068,11 +1091,11 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
-  }
+  // void scrollToBottom() {
+  //   _scrollController.jumpTo(
+  //     _scrollController.position.maxScrollExtent,
+  //     // duration: const Duration(milliseconds: 300),
+  //     // curve: Curves.easeOut,
+  //   );
+  // }
 }

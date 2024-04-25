@@ -2,6 +2,7 @@ import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/screens/contact_screen/search_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:shimmer_pro/shimmer_pro.dart';
 
 class ContactScreen extends StatelessWidget {
   const ContactScreen({super.key});
@@ -64,11 +65,42 @@ class ContactScreen extends StatelessWidget {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const Center(
-                              child: SpinKitFadingCircle(
-                                color: greenColor,
-                                size: 50,
-                              ),
+                            return ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: 10,
+                              itemBuilder: (context, index) {
+                                return Row(
+                                  children: [
+                                    ShimmerPro.sized(
+                                        scaffoldBackgroundColor: blackColor,
+                                        height: 50,
+                                        width: 50),
+                                    const SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ShimmerPro.sized(
+                                          scaffoldBackgroundColor: blackColor,
+                                          height: 10,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              1.5,
+                                        ),
+                                        ShimmerPro.sized(
+                                          scaffoldBackgroundColor: blackColor,
+                                          height: 10,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              1.5,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           } else if (snapshot.hasError) {
                             return const Center(
