@@ -62,8 +62,10 @@ Widget customAppBar({
                           placeholder: (context, url) => const Center(
                             child: CupertinoActivityIndicator(),
                           ),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
+                          errorWidget: (context, url, error) => const Icon(
+                            Icons.person,
+                            color: whiteColor,
+                          ),
                           height: 40,
                           width: 40,
                           fit: BoxFit.cover,

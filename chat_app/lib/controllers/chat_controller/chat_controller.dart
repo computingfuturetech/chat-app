@@ -290,6 +290,8 @@ class ChatController extends GetxController {
   //   }
   // }
 
+  
+
   @override
   void onClose() {
     messageController.dispose();

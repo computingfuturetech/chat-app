@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'dart:developer';
-
+import 'package:chat_app/controllers/user_controller/user_controller.dart';
 import 'package:chat_app/models/chat_room/chat_room.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:chat_app/utils/exports.dart';
 
 class LocalDatabaseService {
   late Database _database;
   bool _isInitialized = false;
-
   Future<void> initDatabase() async {
     try {
       final path = join(await getDatabasesPath(), 'chat_app_database.db');
@@ -82,7 +79,6 @@ class LocalDatabaseService {
 
       await _database.transaction((txn) async {
         for (final chatRoom in chatRooms) {
-
           final Map<String, dynamic> jsonData = {
             "id": chatRoom.id,
             'chat_room_id': chatRoom.chatRoomId,

@@ -43,7 +43,8 @@ Widget bottomModalSheet(
         ),
         ListTile(
           onTap: () {
-            chatController.pickImage(context, ImageSource.camera);
+            chatController.pickImage(
+                context, ImageSource.camera, channel, username, secondUserId);
           },
           leading: Container(
             padding: const EdgeInsets.all(10),
@@ -69,7 +70,8 @@ Widget bottomModalSheet(
         ),
         ListTile(
           onTap: () {
-            chatController.documentPicker(context, channel, username, secondUserId);
+            chatController.documentPicker(
+                context, channel, username, secondUserId);
           },
           leading: Container(
             padding: const EdgeInsets.all(10),

@@ -6,6 +6,7 @@ import 'package:chat_app/screens/chat_screen/ai_chat_screen.dart';
 import 'package:chat_app/screens/home_screen/search_screen.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:chat_app/widgets/home_screen_users.dart';
+import 'package:shimmer_pro/shimmer_pro.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,7 +14,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UserController());
-    final authController = Get.put(AuthController());
+    final authController = Get.find<AuthController>();
+    List<Chatroom> localChatRooms = [];
+    bool dataLoaded = false;
 
     return Scaffold(
       backgroundColor: primaryFontColor,
@@ -75,10 +78,59 @@ class HomeScreen extends StatelessWidget {
                   stream: controller.fetchChatRoomsData(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SpinKitFadingCircle(
-                        color: greenColor,
-                        size: 50,
-                      );
+                      if (localChatRooms.isEmpty) {
+                        return ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: 10,
+                          itemBuilder: (context, index) {
+                            return Row(
+                              children: [
+                                ShimmerPro.sized(
+                                    scaffoldBackgroundColor: blackColor,
+                                    height: 50,
+                                    width: 50),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ShimmerPro.sized(
+                                      scaffoldBackgroundColor: blackColor,
+                                      height: 10,
+                                      width: MediaQuery.of(context).size.width /
+                                          1.5,
+                                    ),
+                                    ShimmerPro.sized(
+                                      scaffoldBackgroundColor: blackColor,
+                                      height: 10,
+                                      width: MediaQuery.of(context).size.width /
+                                          1.5,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        // Show the local data until new data is fetched
+                        return ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: localChatRooms.length,
+                          itemBuilder: (context, index) {
+                            final chatRoom = localChatRooms[index];
+                            return index == 0
+                                ? Container()
+                                : homeUsers(
+                                    '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
+                                    chatRoom.membersInfo[0].bio,
+                                    chatRoom.id.toString(),
+                                    '$baseUrl${chatRoom.membersInfo[0].image}',
+                                    chatRoom.lastMessage.message,
+                                    chatRoom.membersInfo.first.id.toString(),
+                                  );
+                          },
+                        );
+                      }
                     }
                     if (!snapshot.hasData) {
                       return const Center(
@@ -95,25 +147,30 @@ class HomeScreen extends StatelessWidget {
                         child: Text('No data found'),
                       );
                     } else {
-                      final chatRooms = snapshot.data;
-                      return ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          final chatRoom = chatRooms![index];
+                      // final chatRooms = snapshot.data;
+                      localChatRooms = snapshot.data!;
+                      dataLoaded = true;
+                      return Obx(() {
+                        final chatRooms = snapshot.data!;
+                        final isLoading = controller.isHomeScreenLoading.value;
+                        return ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              final chatRoom = chatRooms[index];
 
-                          return index == 0
-                              ? Container()
-                              : homeUsers(
-                                  '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
-                                  chatRoom.membersInfo[0].bio,
-                                  chatRoom.id.toString(),
-                                  '$baseUrl${chatRoom.membersInfo[0].image}',
-                                  chatRoom.lastMessage.message,
-                                  chatRoom.membersInfo.first.id.toString(),
-                                );
-                        },
-                      );
+                              return index == 0
+                                  ? Container()
+                                  : homeUsers(
+                                      '${chatRoom.membersInfo[0].firstName} ${chatRoom.membersInfo[0].lastName}',
+                                      chatRoom.membersInfo[0].bio,
+                                      chatRoom.id.toString(),
+                                      '$baseUrl${chatRoom.membersInfo[0].image}',
+                                      chatRoom.lastMessage.message,
+                                      chatRoom.membersInfo.first.id.toString(),
+                                    );
+                            });
+                      });
                     }
                   },
                 ),

@@ -22,6 +22,8 @@ class UserController extends GetxController {
 
   final RxInt aiChatRoomIds = 0.obs;
 
+  final chatRoomsList = <Chatroom>[].obs;
+
   final toId = ''.obs;
   final fromId = ''.obs;
 
@@ -144,74 +146,24 @@ class UserController extends GetxController {
     }
   }
 
-  // Stream<List<Chatroom>> fetchChatRoomsData() async* {
-  //   try {
-  //     log('fetchChatRoomsData');
-  //     await _localDatabaseService.ensureInitialized();
-  //     final header = {
-  //       'Authorization': 'JWT ${token.value}',
-  //     };
-  //     final url = Uri.parse(
-  //         'https://6160-182-185-201-119.ngrok-free.app/chat/chatrooms/');
-  //     final response = await http.get(url, headers: header);
-  //     log('reso: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final List<Chatroom> chatRooms = chatroomFromJson(response.body);
-  //       await _localDatabaseService.updateChatRooms(chatRooms);
-  //       log('Chatrooms data: ${chatRooms[0].membersInfo![0].firstName}');
-  //       yield chatRooms;
-  //     } else {
-  //       throw 'Failed to load data';
-  //     }
-  //   } catch (e) {
-  //     throw 'Error: $e';
-  //   }
-  // }
   Stream<List<Chatroom>> fetchChatRoomsData() async* {
     try {
       await _localDatabaseService.ensureInitialized();
 
       // Fetch data from local database
       final localData = await _localDatabaseService.fetchChatRoomsData().first;
-
-      yield localData;
+      chatRoomsList.assignAll(localData);
 
       // Fetch data from API in the background
-      _fetchDataFromApiInBackground();
-      update();
+      await _fetchDataFromApiInBackground();
+
+      // Yield the updated list
+      yield chatRoomsList.toList();
     } catch (e) {
       throw 'Error fetching chat rooms data: $e';
     }
   }
 
-  // Future<void> _fetchDataFromApiInBackground() async {
-  //   try {
-  //     final bool isConnected = await checkInternetConnectivity();
-
-  //     if (isConnected) {
-  //       final header = {
-  //         'Authorization': 'JWT ${token.value}',
-  //       };
-  //       final url = Uri.parse(
-  //           'https://59e2-182-185-217-227.ngrok-free.app/chat/chatrooms/');
-
-  //       final response =
-  //           await http.get(url, headers: header).then((value) async {
-  //         log('Response: ${value.body}');
-
-  //         if (value.statusCode == 200) {
-  //           final List<Chatroom> chatRooms = chatroomFromJson(value.body);
-  //           await _localDatabaseService.updateChatRooms(chatRooms);
-  //         } else {
-  //           throw 'Failed to load data from API';
-  //         }
-  //       });
-  //     }
-  //   } catch (e) {
-  //     log('Error fetching data from API: $e');
-  //   }
-  // }
   Future<void> _fetchDataFromApiInBackground() async {
     try {
       isHomeScreenLoading.value = true;
@@ -229,6 +181,8 @@ class UserController extends GetxController {
           final responseBody = response.body;
           if (responseBody.isNotEmpty) {
             final List<Chatroom> chatRooms = chatroomFromJson(responseBody);
+            chatRoomsList.assignAll(chatRooms);
+            log('Chatrooms from API: ${chatRoomsList.first.lastMessage.message}');
             await _localDatabaseService.updateChatRooms(chatRooms);
             isHomeScreenLoading.value = false;
           } else {
@@ -250,38 +204,6 @@ class UserController extends GetxController {
     // getAIChatroom();
   }
 
-  // Future<void> sendFriendRequestNotification() async {
-  //   try {
-  //     final WebSocketChannel channel = WebSocketChannel.connect(
-  //       Uri.parse(
-  //           'ws://52b6-182-185-212-155.ngrok-free.app/ws/notification/3/2/'),
-  //     );
-  //     log('WebSocket channel created: $channel');
-  //     channel.sink.add(jsonEncode(
-  //         {'type': 'friend_request_type', 'message': 'Send friend request'}));
-  //     log('Message sent via WebSocket');
-
-  //     // Handle WebSocket events
-  //     channel.stream.listen((message) {
-  //       // Handle incoming messages
-  //       log('WebSocket message received: $message');
-
-  //       // Call the `FlutterBackgroundService().invoke('setAsForeground')` method to show a notification.
-  //       FlutterBackgroundService().invoke('setAsForeground');
-
-  //       // _showNotificationWithDefaultSound(message.toString());
-  //     }, onError: (error) {
-  //       // Handle WebSocket errors
-  //       log('WebSocket error: $error');
-  //     }, onDone: () {
-  //       // Handle WebSocket close
-  //       log('WebSocket closed');
-  //     });
-  //   } catch (e) {
-  //     log('Error in WebSocket communication: $e');
-  //     throw 'Error: $e';
-  //   }
-  // }
   Future<void> sendFriendRequestNotification(String id) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();

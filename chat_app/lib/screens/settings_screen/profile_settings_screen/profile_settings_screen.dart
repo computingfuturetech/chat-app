@@ -35,14 +35,18 @@ class ProfileSettingScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(100),
                   child: CachedNetworkImage(
                     // imageUrl: controller.user.value.profilePic,
-                    imageUrl: authController.image.value,
+
+                    imageUrl: '$baseUrl${authController.image.value}',
                     height: 100,
                     width: 100,
                     fit: BoxFit.cover,
                     placeholder: (context, url) =>
                         const CircularProgressIndicator(),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.person,
+                      color: whiteColor,
+                      size: 30,
+                    ),
                   ),
                 ),
                 Text(
@@ -131,110 +135,221 @@ class ProfileSettingScreen extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Display Name',
-                                style: TextStyle(
-                                  fontFamily: circularStdBook,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Display Name',
+                                  style: TextStyle(
+                                    fontFamily: circularStdBook,
+                                    fontSize: 14,
+                                    color: subtitleColor,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                authController.username.value,
-                                // 'Jhon Abraham',
-                                style: const TextStyle(
-                                  fontFamily: carosMedium,
-                                  fontSize: 18,
-                                  color: primaryFontColor,
+                                TextFormField(
+                                  initialValue: authController.username.value,
+                                  // onChanged: (value) {
+                                  //   authController.username.value = value;
+                                  // },
+                                  style: const TextStyle(
+                                    fontFamily: carosMedium,
+                                    fontSize: 18,
+                                    color: primaryFontColor,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                    ),
+                                    contentPadding: EdgeInsets.all(10),
+                                    hintText: 'Enter your name',
+                                    hintStyle: TextStyle(
+                                      fontFamily: circularStdMedium,
+                                      fontSize: 18,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Email Address',
-                                style: TextStyle(
-                                  fontFamily: circularStdBook,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+                                // Text(
+                                //   authController.username.value,
+                                //   // 'Jhon Abraham',
+                                //   style: const TextStyle(
+                                //     fontFamily: carosMedium,
+                                //     fontSize: 18,
+                                //     color: primaryFontColor,
+                                //   ),
+                                // ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Email Address',
+                                  style: TextStyle(
+                                    fontFamily: circularStdBook,
+                                    fontSize: 14,
+                                    color: subtitleColor,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                // controller.user.value.email,
-                                authController.email.value,
+                                // Text(
+                                //   // controller.user.value.email,
+                                //   authController.email.value,
 
-                                style: const TextStyle(
-                                  fontFamily: carosMedium,
-                                  fontSize: 18,
-                                  color: primaryFontColor,
+                                //   style: const TextStyle(
+                                //     fontFamily: carosMedium,
+                                //     fontSize: 18,
+                                //     color: primaryFontColor,
+                                //   ),
+                                // ),
+                                TextFormField(
+                                  initialValue: authController.email.value,
+                                  onChanged: (value) {
+                                    authController.username.value = value;
+                                  },
+                                  style: const TextStyle(
+                                    fontFamily: circularStdMedium,
+                                    fontSize: 18,
+                                    color: primaryFontColor,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                    ),
+                                    contentPadding: EdgeInsets.all(10),
+                                    hintText: 'Enter your name',
+                                    hintStyle: TextStyle(
+                                      fontFamily: carosMedium,
+                                      fontSize: 18,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Address',
-                                style: TextStyle(
-                                  fontFamily: circularStdBook,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+
+                                const SizedBox(height: 10),
+                                // const Text(
+                                //   'Address',
+                                //   style: TextStyle(
+                                //     fontFamily: circularStdBook,
+                                //     fontSize: 14,
+                                //     color: subtitleColor,
+                                //   ),
+                                // ),
+                                // const Text(
+                                //   // controller.user.value.address,
+                                //   '33 street west subidbazar, sylhet',
+                                //   style: TextStyle(
+                                //     fontFamily: carosMedium,
+                                //     fontSize: 18,
+                                //     color: primaryFontColor,
+                                //   ),
+                                // ),
+                                // const SizedBox(height: 10),
+                                const Text(
+                                  'Phone Number',
+                                  style: TextStyle(
+                                    fontFamily: circularStdBook,
+                                    fontSize: 14,
+                                    color: subtitleColor,
+                                  ),
                                 ),
-                              ),
-                              const Text(
-                                // controller.user.value.address,
-                                '33 street west subidbazar, sylhet',
-                                style: TextStyle(
-                                  fontFamily: carosMedium,
-                                  fontSize: 18,
-                                  color: primaryFontColor,
+
+                                TextFormField(
+                                  initialValue: authController.phone.value,
+                                  onChanged: (value) {
+                                    authController.phone.value = value;
+                                  },
+                                  style: const TextStyle(
+                                    fontFamily: circularStdMedium,
+                                    fontSize: 18,
+                                    color: primaryFontColor,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                    ),
+                                    contentPadding: EdgeInsets.all(10),
+                                    hintText: 'Enter your phone',
+                                    hintStyle: TextStyle(
+                                      fontFamily: circularStdMedium,
+                                      fontSize: 18,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Phone Number',
-                                style: TextStyle(
-                                  fontFamily: circularStdBook,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+                                // Text(
+                                //   authController.phone.value,
+                                //   style: const TextStyle(
+                                //     fontFamily: carosMedium,
+                                //     fontSize: 18,
+                                //     color: primaryFontColor,
+                                //   ),
+                                // ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Bio',
+                                  style: TextStyle(
+                                    fontFamily: circularStdBook,
+                                    fontSize: 14,
+                                    color: subtitleColor,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                authController.phone.value,
-                                style: const TextStyle(
-                                  fontFamily: carosMedium,
-                                  fontSize: 18,
-                                  color: primaryFontColor,
+
+                                TextFormField(
+                                  initialValue: authController.bio.value,
+                                  onChanged: (value) {
+                                    authController.bio.value = value;
+                                  },
+                                  maxLines: 10,
+                                  minLines: 5,
+                                  style: const TextStyle(
+                                    fontFamily: circularStdMedium,
+                                    fontSize: 18,
+                                    color: primaryFontColor,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                    ),
+                                    contentPadding: EdgeInsets.all(10),
+                                    hintText: 'Enter your bio',
+                                    hintStyle: TextStyle(
+                                      fontFamily: carosMedium,
+                                      fontSize: 18,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Bio',
-                                style: TextStyle(
-                                  fontFamily: circularStdBook,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+                                const SizedBox(height: 10),
+                                LargeButton(
+                                  title: 'Update',
+                                  onPressed: () {},
+                                  controller: authController,
+                                  backgroundColor: blackColor,
+                                  textColor: whiteColor,
                                 ),
-                              ),
-                              Text(
-                                authController.bio.value,
-                                style: const TextStyle(
-                                  fontFamily: carosMedium,
-                                  fontSize: 18,
-                                  color: primaryFontColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
+                                // Text(
+                                //   authController.bio.value,
+                                //   style: const TextStyle(
+                                //     fontFamily: carosMedium,
+                                //     fontSize: 18,
+                                //     color: primaryFontColor,
+                                //   ),
+                                // ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),

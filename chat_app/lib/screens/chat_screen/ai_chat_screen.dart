@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 
 import 'dart:developer';
+import 'package:chat_app/controllers/chat_controller/chat_controller.dart';
 import 'package:chat_app/utils/exports.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -44,6 +45,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
   @override
   void initState() {
+    _scrollController.addListener(_scrollListener);
+
     _channel = WebSocketChannel.connect(
       Uri.parse(
           '$webSocketUrl/ws/chat/${widget.chatRoomId}/${authController.userid}/'),
@@ -70,9 +73,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 timestamp: DateTime.now()))
             .then((value) {
           setState(
-            () {
-              scrollToBottom();
-            },
+            () {},
           );
         });
       } else {
@@ -84,7 +85,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 sender: 'Me',
                 timestamp: DateTime.now()))
             .then((value) {
-          scrollToBottom();
           setState(
             () {},
           );
@@ -94,9 +94,23 @@ class _AIChatScreenState extends State<AIChatScreen> {
     });
   }
 
+  void _scrollListener() {
+    if (_scrollController.offset >=
+            _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      setState(() {
+        log('reached the bottom');
+        // Handle reaching the bottom if needed
+      });
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+    _channel.sink.close();
+    ChatController().isWriting.value = false;
+
     super.dispose();
   }
 
@@ -246,9 +260,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
                       );
                     }
                     var data = snapshot.data!;
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      scrollToBottom();
-                    });
+                    if (snapshot.data!.length > 1) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollController
+                            .jumpTo(_scrollController.position.maxScrollExtent);
+                      });
+                    }
                     return ListView.builder(
                       key: _listKey,
                       controller: _scrollController,
@@ -415,9 +432,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
                             'toID': widget.secondUserId,
                           }),
                         );
-                        // sendPushMessage();
-                        log('message sent');
-                        scrollToBottom();
 
                         _controller.clear();
                       }
@@ -446,11 +460,11 @@ class _AIChatScreenState extends State<AIChatScreen> {
     );
   }
 
-  void scrollToBottom() {
-    _scrollController.jumpTo(
-      _scrollController.position.maxScrollExtent,
-      // duration: const Duration(milliseconds: 300),
-      // curve: Curves.easeOut,
-    );
-  }
+  // void scrollToBottom() {
+  //   _scrollController.jumpTo(
+  //     _scrollController.position.maxScrollExtent,
+  //     // duration: const Duration(milliseconds: 300),
+  //     // curve: Curves.easeOut,
+  //   );
+  // }
 }
