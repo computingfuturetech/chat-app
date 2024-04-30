@@ -53,6 +53,8 @@ class ChatMessage(models.Model):
     media=models.FileField(upload_to=user_media_path,blank=True,null=True)
     timestamp = models.TimeField(auto_now_add=True)
     datestamp = models.DateField(auto_now_add=True)
+    sent = models.BooleanField(default=False)
+    chat_type = models.CharField(max_length=256,blank=True, null=True)
 
     def __str__(self):
         return f'ChatMessage - {self.user.username}: {self.message}'
@@ -65,3 +67,9 @@ class AiModel(models.Model):
     response=models.TextField(blank=True, null=True)
     timestamp = models.TimeField(auto_now_add=True)
     datestamp = models.DateField(auto_now_add=True)
+
+
+class UserConnectedStatus(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    status = models.BooleanField(default=False)
+    
