@@ -16,6 +16,7 @@ from channels.auth import AuthMiddlewareStack
 import chat.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatapp.settings')
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
 application = ProtocolTypeRouter({
     'http':get_asgi_application(),
